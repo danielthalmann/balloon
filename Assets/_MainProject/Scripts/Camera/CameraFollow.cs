@@ -2,11 +2,14 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Camera camera;
+    public Camera currentCamera;
     public float smoothSpeed = 0.125f;
     public Transform target;
-
     private Vector3 offset;
+    public Vector3 macroZoom;
+
+    public bool macro;
+
 
     /// <summary>
     /// Start est appelé avant la première mise à jour d'image
@@ -14,7 +17,7 @@ public class CameraFollow : MonoBehaviour
     void Start()
     {
         // enregistre initialement la position de la caméra par rapport à l'objet observé
-        offset = camera.transform.position - target.transform.position;
+        offset = currentCamera.transform.position - target.transform.position;
     }
 
 
@@ -24,8 +27,13 @@ public class CameraFollow : MonoBehaviour
     void Update()
     {
         Vector3 desiredPosition = target.position + offset;
+        if (macro)
+        {
+            desiredPosition += macroZoom;
+        }
+
         // adouci le déplacement de la caméra avec Lerp
-        Vector3 SmoothPosition = Vector3.Lerp(camera.transform.position, desiredPosition, smoothSpeed);
-        camera.transform.position = SmoothPosition;
+        Vector3 SmoothPosition = Vector3.Lerp(currentCamera.transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
+        currentCamera.transform.position = SmoothPosition;
     }
 }
