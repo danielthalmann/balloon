@@ -34,6 +34,7 @@ public class BasketWalker : MonoBehaviour
     bool atLadder = false;     // dans une zone d’échelle ?
     float ladderX = 0f;        // X de l’échelle active (on colle X pendant l’escalade)
     Bounds ladderBounds;       // hauteur couverte par l’échelle active
+    Collider activeLadder;     // référence dynamique à l’échelle (utile si la nacelle bouge)
     bool climbing = false;     // en train de grimper/descendre ?
     int currentLevel = 0;      // index du niveau où on “marche”
     int targetLevel = -1;      // index vers lequel on grimpe
@@ -82,6 +83,13 @@ public class BasketWalker : MonoBehaviour
         float halfCharY = rend ? rend.bounds.extents.y : 0f;
         float halfCharZ = rend ? rend.bounds.extents.z : 0f;
 
+        // Mise à jour dynamique des infos d’échelle (si la nacelle/l’échelle bouge)
+        if (atLadder && activeLadder)
+        {
+            ladderBounds = activeLadder.bounds;
+            ladderX = ladderBounds.center.x;
+        }
+
         // Liste triée des hauteurs "où poser le perso" (Y cibles)
         var levels = GetLevelsY(b, halfCharY);
         if (levels.Length == 0) return;
@@ -102,18 +110,31 @@ public class BasketWalker : MonoBehaviour
             // Coller à l’échelle en X
             pos.x = ladderX;
 
-            // Avancer vers la hauteur cible
-            float targetY = levels[targetLevel];
-            pos.y = Mathf.MoveTowards(pos.y, targetY, climbSpeed * Time.deltaTime);
+            // Contrôle libre vertical sur l’échelle
+            float minY = ladderBounds.min.y + halfCharY + paddingY;
+            float maxY = ladderBounds.max.y - halfCharY - paddingY;
+            float deltaY = inputY * climbSpeed * Time.deltaTime;
+            pos.y = Mathf.Clamp(pos.y + deltaY, minY, maxY);
 
-            // Arrivé ? on “accroche” le niveau
-            const float snap = 0.01f;
-            if (Mathf.Abs(pos.y - targetY) <= snap)
+            // Sortie volontaire de l’échelle si on pousse à l’horizontale près d’un palier
+            if (Mathf.Abs(inputX) > 0.1f)
             {
-                pos.y = targetY;
-                currentLevel = targetLevel;
-                targetLevel = -1;
-                climbing = false;
+                // Cherche le palier le plus proche
+                int closest = 0;
+                float best = Mathf.Infinity;
+                for (int i = 0; i < levels.Length; i++)
+                {
+                    float d = Mathf.Abs(pos.y - levels[i]);
+                    if (d < best) { best = d; closest = i; }
+                }
+                const float detachSnap = 0.05f;
+                if (best <= detachSnap)
+                {
+                    currentLevel = closest;
+                    climbing = false;
+                    targetLevel = -1;
+                    pos.y = levels[currentLevel];
+                }
             }
         }
         else
@@ -128,25 +149,9 @@ public class BasketWalker : MonoBehaviour
             // Début d’escalade si dans une échelle + entrée verticale
             if (atLadder && Mathf.Abs(inputY) > 0.1f)
             {
-                int dir = inputY > 0f ? +1 : -1;
-                int candidate = currentLevel + dir;
-
-                if (candidate >= 0 && candidate < levels.Length)
-                {
-                    float candidateY = levels[candidate];
-
-                    // Autorisé par l’échelle ? (le Y doit être couvert par le collider de l’échelle)
-                    bool covered =
-                        candidateY >= ladderBounds.min.y - 0.001f &&
-                        candidateY <= ladderBounds.max.y + 0.001f;
-
-                    if (covered)
-                    {
-                        targetLevel = candidate;
-                        climbing = true;
-                        pos.x = ladderX; // snap X dès le départ
-                    }
-                }
+                climbing = true;
+                targetLevel = -1;
+                pos.x = ladderX; // snap X dès le départ
             }
 
             // Si pas d’escalade en cours, utiliser l’axe vertical d’entrée pour avancer/reculer (Z)
@@ -202,8 +207,9 @@ public class BasketWalker : MonoBehaviour
         if (other.CompareTag("Ladder"))
         {
             atLadder = true;
-            ladderX = other.bounds.center.x;
-            ladderBounds = other.bounds; // sert à vérifier quels niveaux sont accessibles
+            activeLadder = other;
+            ladderBounds = other.bounds; // init, mais sera mis à jour dynamiquement
+            ladderX = ladderBounds.center.x;
         }
     }
 
@@ -212,6 +218,7 @@ public class BasketWalker : MonoBehaviour
         if (other.CompareTag("Ladder"))
         {
             atLadder = false;
+            activeLadder = null;
 
             // Si on sort en cours d’escalade, on choisit le niveau le plus proche
             if (climbing)
