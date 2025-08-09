@@ -8,9 +8,11 @@ public class BasketWalker : MonoBehaviour
 {
     [Header("Déplacement")]
     [SerializeField] float speedX = 3f;       // vitesse latérale au niveau
+    [SerializeField] float speedZ = 3f;       // vitesse avant/arrière dans la nacelle
     [SerializeField] float climbSpeed = 2f;   // vitesse sur l’échelle
     [SerializeField] float paddingX = 0.02f;  // marge X avec les bords de la nacelle
     [SerializeField] float paddingY = 0.02f;  // marge Y avec les surfaces
+    [SerializeField] float paddingZ = 0.02f;  // marge Z avec les bords de la nacelle
 
     [Header("Références nacelle")]
     [SerializeField] Transform basket;            // Transform de la nacelle (souvent parent)
@@ -50,7 +52,7 @@ public class BasketWalker : MonoBehaviour
 
         rb.useGravity = false;
         rb.isKinematic = true;
-        rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionZ;
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
 
         if (moveAction && moveAction.action != null)
             moveAction.action.Enable();
@@ -78,6 +80,7 @@ public class BasketWalker : MonoBehaviour
         Bounds b = basketCollider.bounds;
         float halfCharX = rend ? rend.bounds.extents.x : 0f;
         float halfCharY = rend ? rend.bounds.extents.y : 0f;
+        float halfCharZ = rend ? rend.bounds.extents.z : 0f;
 
         // Liste triée des hauteurs "où poser le perso" (Y cibles)
         var levels = GetLevelsY(b, halfCharY);
@@ -88,6 +91,9 @@ public class BasketWalker : MonoBehaviour
         // Limites X dans la nacelle
         float halfBasketX = b.extents.x;
         float limitX = Mathf.Max(0f, halfBasketX - halfCharX - paddingX);
+        // Limites Z dans la nacelle
+        float halfBasketZ = b.extents.z;
+        float limitZ = Mathf.Max(0f, halfBasketZ - halfCharZ - paddingZ);
 
         Vector3 pos = transform.position;
 
@@ -142,10 +148,16 @@ public class BasketWalker : MonoBehaviour
                     }
                 }
             }
+
+            // Si pas d’escalade en cours, utiliser l’axe vertical d’entrée pour avancer/reculer (Z)
+            if (!climbing)
+            {
+                pos.z += inputY * speedZ * Time.deltaTime;
+            }
         }
 
-        // Rester sur le plan Z
-        pos.z = basket.position.z;
+        // Rester dans les limites Z de la nacelle
+        pos.z = Mathf.Clamp(pos.z, basket.position.z - limitZ, basket.position.z + limitZ);
 
         transform.position = pos;
     }
