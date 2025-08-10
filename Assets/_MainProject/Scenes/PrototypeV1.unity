@@ -329,8 +329,8 @@ Transform:
   m_GameObject: {fileID: 908404311}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.25, z: -0.4}
-  m_LocalScale: {x: 0.02, y: 0.5, z: 0.099999994}
+  m_LocalPosition: {x: -0.4, y: 0.25, z: 0}
+  m_LocalScale: {x: 0.1, y: 0.5, z: 0.001}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1665728273}
@@ -354,7 +354,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1.5, z: 1}
+  m_Size: {x: 1, y: 2, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &908404314
 MeshRenderer:
@@ -513,9 +513,9 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
-  orthographic: 1
-  orthographic size: 15
+  field of view: 26.1
+  orthographic: 0
+  orthographic size: 5
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -595,12 +595,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speedX: 3
+  speedZ: 3
   climbSpeed: 2
   paddingX: 0.02
   paddingY: 0.02
+  paddingZ: 0.02
   basket: {fileID: 1665728273}
   basketCollider: {fileID: 1665728270}
-  moveAction: {fileID: 0}
+  moveAction: {fileID: -1680190386980627800, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   levelMarkers:
   - {fileID: 213352597}
   - {fileID: 1520362259}
@@ -829,7 +831,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 17fc8ce0e0260413781b6ceadaffe151, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -892,8 +894,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5715606639ca42dea740a7af3705d49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallSpeed: 2
-  fallDown: 0
+  fallSpeed: 0.1
+  fallDown: 1
 --- !u!1 &2059765570
 GameObject:
   m_ObjectHideFlags: 0
@@ -1008,8 +1010,8 @@ Transform:
   m_GameObject: {fileID: 2099338433}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.25, z: 0.4}
-  m_LocalScale: {x: 0.02, y: 0.5, z: 0.1}
+  m_LocalPosition: {x: 0.4, y: -0.25, z: 0}
+  m_LocalScale: {x: 0.1, y: 0.5, z: 0.01}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1665728273}
@@ -1033,7 +1035,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1.5, z: 1}
+  m_Size: {x: 1, y: 2, z: 0}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &2099338436
 MeshRenderer:
