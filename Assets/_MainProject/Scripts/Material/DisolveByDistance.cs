@@ -41,6 +41,7 @@ public class DisolveByDistance : MonoBehaviour
             cutOff = 1.0f;
         }
         currentCutOff = cutOff;
+        material.SetFloat("_Cutoff_Height", currentCutOff);
     }
 
     void Update()
