@@ -18,6 +18,10 @@ public class CameraFollow : MonoBehaviour
     {
         // enregistre initialement la position de la caméra par rapport à l'objet observé
         offset = currentCamera.transform.position - target.transform.position;
+        if (macro)
+        {
+            currentCamera.transform.position = target.position + offset; 
+        }
     }
 
 
