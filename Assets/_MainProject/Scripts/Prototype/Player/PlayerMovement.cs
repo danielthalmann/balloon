@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Linq;
 
 /// <summary>
 /// Gère le mouvement du joueur dans la nacelle (axes X et Z) avec le nouveau Input System
@@ -31,6 +32,10 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 lastMoveDirection;
     private bool isMoving;
     
+    // Ajouter ces variables dans PlayerMovement
+    [Header("État d'escalade")]
+    [SerializeField] private bool isClimbing = false;
+
     void Awake()
     {
         // Récupère le composant PlayerInput
@@ -39,6 +44,27 @@ public class PlayerMovement : MonoBehaviour
         // Récupère les actions spécifiques
         moveAction = playerInput.actions["Move"];
         climbAction = playerInput.actions["Jump"]; // Utilise Jump pour grimper temporairement
+    }
+    
+    void Start()
+    {
+        // Se positionne automatiquement sur l'étage 1 au démarrage
+        if (basketCenter == null)
+        {
+            BasketLevel[] allLevels = FindObjectsByType<BasketLevel>(FindObjectsSortMode.None);
+            BasketLevel level1 = allLevels.FirstOrDefault(level => level.GetLevelNumber() == 1);
+            
+            if (level1 != null)
+            {
+                SetBasketCenter(level1.GetCenter());
+                SetMaxMoveDistance(level1.GetMaxRadius());
+                
+                // Positionne le joueur au centre de l'étage 1
+                Vector3 level1Pos = level1.GetCenter().position;
+                float floorHeight = level1Pos.y + (level1.transform.localScale.y / 2f); // Surface du sol
+                transform.position = new Vector3(level1Pos.x, floorHeight + 1f, level1Pos.z); // +1f = hauteur du capsule
+            }
+        }
     }
     
     void OnEnable()
@@ -78,9 +104,24 @@ public class PlayerMovement : MonoBehaviour
         // Récupère l'input de mouvement (Vector2)
         moveInput = moveAction.ReadValue<Vector2>();
         
-        // Convertit en Vector3 (X et Z pour le mouvement horizontal)
-        inputDirection = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
-        isMoving = inputDirection.magnitude > 0.1f;
+        Debug.Log($"moveInput brut: {moveInput}");
+        
+        // Seulement mouvement sur X, pas de Z
+        inputDirection = new Vector3(moveInput.x, 0f, 0f);
+        
+        Debug.Log($"inputDirection avant normalize: {inputDirection}, magnitude: {inputDirection.magnitude}");
+        
+        if (inputDirection.magnitude > 0.1f)
+        {
+            inputDirection = inputDirection.normalized;
+            isMoving = true;
+        }
+        else
+        {
+            isMoving = false;
+        }
+        
+        Debug.Log($"inputDirection final: {inputDirection}, isMoving: {isMoving}");
         
         if (showDebugInfo && isMoving)
         {
@@ -93,17 +134,30 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     private void ApplyMovement()
     {
-        if (!isMoving || basketCenter == null) return;
+        Debug.Log($"ApplyMovement - isMoving: {isMoving}, basketCenter: {basketCenter != null}, isClimbing: {isClimbing}");
         
-        // Calcule la nouvelle position désirée
+        if (!isMoving || basketCenter == null || isClimbing) 
+        {
+            Debug.Log("ApplyMovement - SORTIE PRÉMATURÉE");
+            return;
+        }
+        
         Vector3 desiredMovement = inputDirection * moveSpeed * Time.deltaTime;
         Vector3 newPosition = transform.position + desiredMovement;
         
-        // Vérifie si la nouvelle position est dans les limites de la nacelle
+        Debug.Log($"Position actuelle: {transform.position}");
+        Debug.Log($"Nouvelle position désirée: {newPosition}");
+        Debug.Log($"Mouvement désiré: {desiredMovement}");
+        
         if (IsPositionValid(newPosition))
         {
+            Debug.Log("Position VALIDE - Mouvement appliqué");
             transform.position = newPosition;
             lastMoveDirection = inputDirection;
+        }
+        else
+        {
+            Debug.Log("Position INVALIDE - Mouvement bloqué");
         }
     }
     
@@ -182,6 +236,14 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.Log($"Distance max de mouvement définie : {maxMoveDistance}");
         }
+    }
+
+    /// <summary>
+    /// Active/désactive le mode escalade
+    /// </summary>
+    public void SetClimbingMode(bool climbing)
+    {
+        isClimbing = climbing;
     }
     
     /// <summary>
