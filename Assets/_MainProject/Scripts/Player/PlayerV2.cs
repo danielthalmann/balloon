@@ -89,7 +89,7 @@ public class PlayerV2 : MonoBehaviour
         float moveDistance = moveSpeed * Time.deltaTime;
 
 
-        bool touch = Physics.CapsuleCast(transform.position, transform.position + Vector3.up * bodyHeight, bodyRadius, moveDirection, out hitInfoFront, moveDistance);
+        bool touch = Physics.CapsuleCast(transform.position, transform.position + Vector3.up * bodyHeight, bodyRadius, rotationDirection, out hitInfoFront, moveDistance);
         if (touch)
         {
             if (hitInfoFront.collider.isTrigger)
@@ -145,9 +145,7 @@ public class PlayerV2 : MonoBehaviour
             if (debugFrontCast)
             {
                 Gizmos.color = Color.red;
-          
-
-                Gizmos.DrawRay(transform.position, moveDirection * bodyRadius);
+                Gizmos.DrawRay(transform.position + Vector3.up * bodyHeight, rotationDirection * bodyRadius);
 
                 Gizmos.color = Color.green;
                 Gizmos.DrawSphere(hitInfoFront.point, .01f);
