@@ -534,6 +534,42 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8151701177086616777, guid: ca965604b43321241a4f49c6655f3793, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.38
+      objectReference: {fileID: 0}
+    - target: {fileID: -8151701177086616777, guid: ca965604b43321241a4f49c6655f3793, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8151701177086616777, guid: ca965604b43321241a4f49c6655f3793, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.38
+      objectReference: {fileID: 0}
+    - target: {fileID: -8151701177086616777, guid: ca965604b43321241a4f49c6655f3793, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.50008726
+      objectReference: {fileID: 0}
+    - target: {fileID: -8151701177086616777, guid: ca965604b43321241a4f49c6655f3793, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.49991274
+      objectReference: {fileID: 0}
+    - target: {fileID: -8151701177086616777, guid: ca965604b43321241a4f49c6655f3793, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.50008726
+      objectReference: {fileID: 0}
+    - target: {fileID: -8151701177086616777, guid: ca965604b43321241a4f49c6655f3793, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.49991274
+      objectReference: {fileID: 0}
+    - target: {fileID: -8151701177086616777, guid: ca965604b43321241a4f49c6655f3793, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -89.98
+      objectReference: {fileID: 0}
+    - target: {fileID: -8151701177086616777, guid: ca965604b43321241a4f49c6655f3793, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -90
+      objectReference: {fileID: 0}
     - target: {fileID: -7844564085509007269, guid: ca965604b43321241a4f49c6655f3793, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -836,7 +872,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentCamera: {fileID: 719275053}
   smoothSpeed: 0.8
-  target: {fileID: 57813029}
+  target: {fileID: 1657495605}
   macroZoom: {x: 0, y: 4, z: -10}
   macro: 0
 --- !u!114 &719275051
@@ -6494,6 +6530,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2126831852}
   m_SourcePrefab: {fileID: 100100000, guid: 7e64d557aab299145b131ae9043526ec, type: 3}
+--- !u!4 &1657495605 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7834238893370823405, guid: 2d82efb841688d04ebc443d9915ac636, type: 3}
+  m_PrefabInstance: {fileID: 965658336}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1711986641
 GameObject:
   m_ObjectHideFlags: 0
