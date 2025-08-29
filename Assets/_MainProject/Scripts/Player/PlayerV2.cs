@@ -1,6 +1,6 @@
-using NUnit.Framework.Internal.Commands;
-using UnityEditor.PackageManager;
+using Prototype.Player;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerV2 : MonoBehaviour
 {
@@ -37,10 +37,21 @@ public class PlayerV2 : MonoBehaviour
     [SerializeField]
     private Animator animator;
 
+    private PlayerInput playerInput;
+    private InputAction moveAction;
+    private InputAction interactAction;
+    private PlayerEngineInteraction playerInteraction;
+
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        playerInteraction = GetComponent<PlayerEngineInteraction>();
+        playerInput = GetComponent<PlayerInput>();
+
+        moveAction = playerInput.actions["Move"];
+        interactAction = playerInput.actions["Interact"];
+
     }
 
     Vector3 horizontalDirection = new Vector3();
@@ -53,8 +64,21 @@ public class PlayerV2 : MonoBehaviour
     {
         Vector3 verticanDirection = new Vector3();
 
-        horizontalDirection.x = 0;
+        Vector3 moveInput = moveAction.ReadValue<Vector2>();
+        horizontalDirection.x = moveInput.x;
+        verticanDirection.y = moveInput.y;
 
+        if (horizontalDirection.x != 0)
+        {
+            rotationDirection = horizontalDirection;
+        }
+
+        if(interactAction.WasPressedThisFrame())
+        {
+            playerInteraction.TriggerInteraction();
+        }
+
+        /*
         if (Input.GetKey(KeyCode.LeftArrow))
         {
             horizontalDirection.x = -1.0f;
@@ -73,6 +97,7 @@ public class PlayerV2 : MonoBehaviour
         {
             verticanDirection.y = -1.0f;
         }
+        */
 
         DetectLadder();
 
