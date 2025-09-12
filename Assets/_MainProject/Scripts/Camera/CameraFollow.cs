@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CameraFollow : MonoBehaviour
 {
@@ -9,6 +10,9 @@ public class CameraFollow : MonoBehaviour
     public Vector3 macroZoom;
 
     public bool macro;
+
+    private InputAction zoomAction;
+
 
 
     /// <summary>
@@ -22,6 +26,7 @@ public class CameraFollow : MonoBehaviour
         {
             currentCamera.transform.position = target.position + offset; 
         }
+        zoomAction = GetComponent<PlayerInput>().actions["Zoom"];
     }
 
 
@@ -39,5 +44,11 @@ public class CameraFollow : MonoBehaviour
         // adouci le déplacement de la caméra avec Lerp
         Vector3 SmoothPosition = Vector3.Lerp(currentCamera.transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
         currentCamera.transform.position = SmoothPosition;
+
+        if (zoomAction.WasPressedThisFrame())
+        {
+            macro = !macro;
+        }
+
     }
 }
