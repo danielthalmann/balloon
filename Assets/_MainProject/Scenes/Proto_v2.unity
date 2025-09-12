@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 57813026}
   - component: {fileID: 57813025}
   - component: {fileID: 57813024}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -202,7 +202,9 @@ MonoBehaviour:
   moveSpeed: 5
   acceleration: 10
   deceleration: 10
-  jumpForce: 7
+  rotateSpeed: 12
+  jumpForce: 4
+  fallMultiplier: 1.5
   groundLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -678,7 +680,7 @@ MonoBehaviour:
   createFloor: 1
   createCeiling: 0
   floorThickness: 0.1
-  ladderOpeningSize: 1.5
+  ladderOpeningSize: 2
   showLevelBounds: 1
   showColliderBounds: 1
   levelColor: {r: 0, g: 0, b: 1, a: 1}
@@ -749,20 +751,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bebc15baf4534144bbb1a5163b49313, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallHeight: 3
-  wallThickness: 0.2
-  createFloor: 1
-  createCeiling: 0
-  floorThickness: 0.1
-  ladderOpeningSize: 1.5
-  showBounds: 1
-  boundsColor:
-    r: 1
-    g: 0
-    b: 0
-    a: 1
-  engineLevel: {fileID: 0}
-  boundsContainer: {fileID: 0}
 --- !u!1001 &508308941
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1062,7 +1050,7 @@ MonoBehaviour:
   createFloor: 1
   createCeiling: 0
   floorThickness: 0.1
-  ladderOpeningSize: 1.5
+  ladderOpeningSize: 2
   showLevelBounds: 1
   showColliderBounds: 1
   levelColor: {r: 0, g: 0, b: 1, a: 1}
@@ -1133,20 +1121,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bebc15baf4534144bbb1a5163b49313, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallHeight: 3
-  wallThickness: 0.2
-  createFloor: 1
-  createCeiling: 0
-  floorThickness: 0.1
-  ladderOpeningSize: 1.5
-  showBounds: 1
-  boundsColor:
-    r: 1
-    g: 0
-    b: 0
-    a: 1
-  engineLevel: {fileID: 0}
-  boundsContainer: {fileID: 0}
 --- !u!1 &765095207
 GameObject:
   m_ObjectHideFlags: 0
@@ -6377,17 +6351,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a267664030844dc7a7e4dab5ebffced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bottomLevel: {fileID: 724368548}
-  topLevel: {fileID: 504416342}
   climbSpeed: 3
-  bottomPoint: {fileID: 0}
-  topPoint: {fileID: 0}
+  exitDistance: 0.5
+  autoCalculateLimits: 1
+  heightMargin: -0.5
+  topY: 5
+  bottomY: 0
   interactionRange: 1
   playerLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
-  showLadderGizmos: 1
-  ladderColor: {r: 0, g: 1, b: 0, a: 1}
+    m_Bits: 256
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  showDebugInfo: 1
 --- !u!1001 &1562398569
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6692,20 +6669,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bebc15baf4534144bbb1a5163b49313, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wallHeight: 3
-  wallThickness: 0.2
-  createFloor: 1
-  createCeiling: 0
-  floorThickness: 0.1
-  ladderOpeningSize: 1.5
-  showBounds: 1
-  boundsColor:
-    r: 1
-    g: 0
-    b: 0
-    a: 1
-  engineLevel: {fileID: 0}
-  boundsContainer: {fileID: 0}
 --- !u!1 &1769844637
 GameObject:
   m_ObjectHideFlags: 0
@@ -11631,7 +11594,7 @@ GameObject:
   - component: {fileID: 1903561456}
   - component: {fileID: 1903561455}
   - component: {fileID: 1903561454}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Capsule
   m_TagString: Untagged
   m_Icon: {fileID: 0}

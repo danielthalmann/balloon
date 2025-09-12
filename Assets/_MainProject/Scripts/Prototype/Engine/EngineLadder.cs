@@ -1,305 +1,250 @@
 using UnityEngine;
-using Prototype.Player;
 
 namespace Prototype.Engine
 {
     /// <summary>
-    /// Échelle simple : Haut/Bas pour monter/descendre, Gauche/Droite pour sortir
+    /// Représente une échelle qui permet au joueur de passer d'un niveau à un autre
     /// </summary>
     public class EngineLadder : MonoBehaviour
     {
         [Header("Configuration de l'échelle")]
-        [SerializeField] private float climbSpeed = 3f;
-        [SerializeField] private float exitDistance = 1.5f;
-        [SerializeField] private bool autoCalculateLimits = true;
-        [SerializeField] private float heightMargin = 0.5f;
-        
-        [Header("Limites manuelles (si auto désactivé)")]
-        [SerializeField] private float topY = 5f; 
-        [SerializeField] private float bottomY = 0f;
-        
-        [Header("Détection")]
-        [SerializeField] private float interactionRange = 1f;
-        [SerializeField] private LayerMask playerLayerMask = -1;
-        [SerializeField] private LayerMask groundLayerMask = 1;
-        
-        [Header("Debug")]
+        [SerializeField] private int startLevelIndex; // Niveau de départ
+        [SerializeField] private int targetLevelIndex; // Niveau d'arrivée
+        [SerializeField] private float ladderWidth = 0.5f; // Largeur de l'échelle
+        [SerializeField] private bool createTriggerArea = true; // Créer une zone de trigger
+
+        [Header("Visualisation")]
         [SerializeField] private bool showDebugInfo = true;
-        
-        // État de l'échelle
-        private GameObject currentPlayer;
-        private bool playerIsClimbing = false;
-        private Transform playerOriginalParent;
-        
-        // Variables pour les coordonnées locales (relatives à l'engin)
-        private float localTopY;
-        private float localBottomY;
-        private Transform engineTransform;
+        [SerializeField] private Color ladderColor = Color.yellow;
+
+        // Référence aux niveaux
+        private EngineLevel startLevel;
+        private EngineLevel targetLevel;
+        private BoxCollider triggerCollider;
+
+        void Awake()
+        {
+            // Trouver les niveaux correspondants
+            EngineLevel[] levels = GetComponentInParent<EngineController>()?.GetComponentsInChildren<EngineLevel>();
+            
+            if (levels != null)
+            {
+                foreach (EngineLevel level in levels)
+                {
+                    if (level.LevelIndex == startLevelIndex)
+                    {
+                        startLevel = level;
+                    }
+                    else if (level.LevelIndex == targetLevelIndex)
+                    {
+                        targetLevel = level;
+                    }
+                }
+            }
+            
+            if (startLevel == null || targetLevel == null)
+            {
+                Debug.LogWarning($"Échelle {gameObject.name}: Niveaux de départ ou d'arrivée introuvables");
+            }
+        }
 
         void Start()
         {
-            if (autoCalculateLimits)
+            if (createTriggerArea)
             {
-                CalculateAutomaticLimits();
+                CreateTriggerArea();
             }
         }
-        
-        void Update()
-        {
-            CheckForPlayer();
-            HandleClimbing();
-        }
-        
-        /// <summary>
-        /// Calcule automatiquement les limites basées sur les niveaux au-dessus et en-dessous
-        /// </summary>
-        private void CalculateAutomaticLimits()
-        {
-            var engineController = GetComponentInParent<EngineController>();
-            if (engineController == null) return;
-            
-            engineTransform = engineController.transform;
-            EngineLevel[] allLevels = engineController.GetComponentsInChildren<EngineLevel>();
-            
-            EngineLevel levelBelow = null;
-            EngineLevel levelAbove = null;
-            float ladderLocalY = transform.localPosition.y;
-            
-            // Trouver les niveaux les plus proches
-            foreach (EngineLevel level in allLevels)
-            {
-                float levelLocalY = level.transform.localPosition.y + level.FloorYOffset;
-                
-                if (levelLocalY < ladderLocalY)
-                {
-                    if (levelBelow == null || levelLocalY > levelBelow.transform.localPosition.y + levelBelow.FloorYOffset)
-                    {
-                        levelBelow = level;
-                    }
-                }
-                else if (levelLocalY > ladderLocalY)
-                {
-                    if (levelAbove == null || levelLocalY < levelAbove.transform.localPosition.y + levelAbove.FloorYOffset)
-                    {
-                        levelAbove = level;
-                    }
-                }
-            }
-            
-            // Calculer les limites locales
-            localBottomY = levelBelow != null ? 
-                levelBelow.transform.localPosition.y + levelBelow.FloorYOffset + heightMargin : 
-                ladderLocalY - 2f;
-                
-            localTopY = levelAbove != null ? 
-                levelAbove.transform.localPosition.y + levelAbove.FloorYOffset - heightMargin : 
-                ladderLocalY + 2f;
-        }
-        
-        /// <summary>
-        /// Détecte si un joueur est proche
-        /// </summary>
-        private void CheckForPlayer()
-        {
-            Collider[] colliders = Physics.OverlapSphere(transform.position, interactionRange, playerLayerMask);
-            
-            GameObject nearbyPlayer = null;
-            foreach (Collider col in colliders)
-            {
-                if (col.CompareTag("Player") || col.name.Contains("Player"))
-                {
-                    nearbyPlayer = col.gameObject;
-                    break;
-                }
-            }
-            
-            if (nearbyPlayer != null && currentPlayer == null)
-            {
-                currentPlayer = nearbyPlayer;
-            }
-            else if (nearbyPlayer == null && currentPlayer != null && !playerIsClimbing)
-            {
-                currentPlayer = null;
-            }
-        }
-        
-        /// <summary>
-        /// Gère l'escalade
-        /// </summary>
-        private void HandleClimbing()
-        {
-            if (currentPlayer == null) return;
-            
-            var playerController = currentPlayer.GetComponent<PlayerController>();
-            if (playerController == null) return;
-            
-            Vector2 input = playerController.MoveInput;
-            
-            // Commencer à grimper
-            if (!playerIsClimbing && Mathf.Abs(input.y) > 0.1f)
-            {
-                StartClimbing();
-            }
-            
-            if (playerIsClimbing)
-            {
-                // Mouvement vertical
-                if (Mathf.Abs(input.y) > 0.1f)
-                {
-                    ClimbVertical(input.y);
-                }
-                
-                // Sortir horizontalement
-                if (Mathf.Abs(input.x) > 0.1f)
-                {
-                    ExitLadder(input.x);
-                }
-            }
-        }
-        
-        /// <summary>
-        /// Commence l'escalade
-        /// </summary>
-        private void StartClimbing()
-        {
-            if (currentPlayer == null) return;
-            
-            playerIsClimbing = true;
-            playerOriginalParent = currentPlayer.transform.parent;
-            
-            // PAS de téléportation ! Le joueur reste où il est
-            // On aligne juste progressivement sur l'axe X de l'échelle
-            
-            // Désactiver la gravité
-            Rigidbody playerRb = currentPlayer.GetComponent<Rigidbody>();
-            if (playerRb != null)
-            {
-                playerRb.useGravity = false;
-                playerRb.linearVelocity = Vector3.zero;
-            }
-        }
-        
-        /// <summary>
-        /// Propriétés pour les limites en coordonnées monde
-        /// </summary>
-        private float TopLimit => autoCalculateLimits && engineTransform != null ? 
-            engineTransform.position.y + localTopY : topY;
-            
-        private float BottomLimit => autoCalculateLimits && engineTransform != null ? 
-            engineTransform.position.y + localBottomY : bottomY;
-        
-        /// <summary>
-        /// Mouvement vertical sur l'échelle avec alignement progressif
-        /// </summary>
-        private void ClimbVertical(float input)
-        {
-            if (currentPlayer == null) return;
-            
-            Vector3 currentPos = currentPlayer.transform.position;
-            
-            // Mouvement vertical
-            Vector3 verticalMovement = Vector3.up * input * climbSpeed * Time.deltaTime;
-            Vector3 newPosition = currentPos + verticalMovement;
-            
-            // Alignement progressif sur l'échelle (pas instantané)
-            float alignSpeed = 2f; // Vitesse d'alignement
-            newPosition.x = Mathf.MoveTowards(currentPos.x, transform.position.x, alignSpeed * Time.deltaTime);
-            
-            // Limiter la hauteur
-            newPosition.y = Mathf.Clamp(newPosition.y, BottomLimit, TopLimit);
-            
-            currentPlayer.transform.position = newPosition;
-        }
-        
-        /// <summary>
-        /// Sortir de l'échelle avec mouvement fluide
-        /// </summary>
-        private void ExitLadder(float horizontalInput)
-        {
-            if (currentPlayer == null) return;
-            
-            // Mouvement fluide vers la sortie au lieu de téléportation
-            Vector3 currentPos = currentPlayer.transform.position;
-            float exitSpeed = 3f; // Vitesse de sortie
-            
-            Vector3 exitMovement = Vector3.right * horizontalInput * exitSpeed * Time.deltaTime;
-            Vector3 newPosition = currentPos + exitMovement;
-            
-            // Sortir quand on est assez loin de l'échelle
-            float distanceFromLadder = Mathf.Abs(newPosition.x - transform.position.x);
-            if (distanceFromLadder > 1f)
-            {
-                StopClimbing();
-            }
-            else
-            {
-                currentPlayer.transform.position = newPosition;
-            }
-        }
-        
-        /// <summary>
-        /// Arrête l'escalade
-        /// </summary>
-        private void StopClimbing()
-        {
-            playerIsClimbing = false;
-            
-            if (currentPlayer != null)
-            {
-                // Remettre la gravité
-                Rigidbody playerRb = currentPlayer.GetComponent<Rigidbody>();
-                if (playerRb != null)
-                {
-                    playerRb.useGravity = true;
-                    playerRb.constraints = RigidbodyConstraints.FreezeRotation;
-                }
-                
-                // Remettre le parent si sur un engin
-                var playerInteraction = currentPlayer.GetComponent<PlayerEngineInteraction>();
-                if (playerInteraction != null && playerInteraction.IsOnEngine)
-                {
-                    // Garder attaché à l'engin
-                }
-                else if (playerOriginalParent != null)
-                {
-                    currentPlayer.transform.SetParent(playerOriginalParent);
-                }
-            }
-            
-            playerOriginalParent = null;
-        }
-        
-        // Debug visuel
-        void OnDrawGizmosSelected()
-        {
-            // Portée d'interaction
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(transform.position, interactionRange);
-            
-            // Échelle
-            Gizmos.color = Color.green;
-            Vector3 bottom = new Vector3(transform.position.x, BottomLimit, transform.position.z);
-            Vector3 top = new Vector3(transform.position.x, TopLimit, transform.position.z);
-            Gizmos.DrawLine(bottom, top);
-            
-            // Points de sortie
-            Gizmos.color = Color.red;
-            Vector3 leftExit = transform.position + Vector3.left * exitDistance;
-            Vector3 rightExit = transform.position + Vector3.right * exitDistance;
-            Gizmos.DrawWireSphere(leftExit, 0.3f);
-            Gizmos.DrawWireSphere(rightExit, 0.3f);
-        }
-        
-        // Propriétés pour compatibilité avec EngineLevel
-        public EngineLevel BottomLevel => null;
-        public EngineLevel TopLevel => null;
 
         /// <summary>
-        /// Vérifie si un joueur spécifique est en train de grimper cette échelle
+        /// Crée la zone de détection pour l'échelle
         /// </summary>
-        public bool IsPlayerClimbing(GameObject player)
+        private void CreateTriggerArea()
         {
-            return playerIsClimbing && currentPlayer == player;
+            if (startLevel == null || targetLevel == null) return;
+            
+            triggerCollider = gameObject.AddComponent<BoxCollider>();
+            triggerCollider.isTrigger = true;
+            
+            // Position verticale entre les deux niveaux
+            float startY = startLevel.GetFloorWorldPosition().y;
+            float targetY = targetLevel.GetFloorWorldPosition().y;
+            float height = Mathf.Abs(targetY - startY);
+            float centerY = (startY + targetY) / 2f;
+            
+            // Ajuster la position locale du GameObject pour centrer le trigger
+            transform.position = new Vector3(
+                transform.position.x,
+                centerY,
+                transform.position.z
+            );
+            
+            // Définir la taille du trigger
+            triggerCollider.size = new Vector3(ladderWidth, height, ladderWidth);
+            
+            // Ajouter un tag pour l'identification
+            gameObject.tag = "Ladder";
+        }
+
+        /// <summary>
+        /// Téléporte le joueur vers le niveau cible
+        /// </summary>
+        public void UseToClimb(Transform playerTransform)
+        {
+            if (targetLevel == null) return;
+            
+            // Trouver la position d'arrivée
+            Vector3 targetPosition = targetLevel.GetFloorWorldPosition();
+            // Ajuster la position X/Z pour correspondre à la position horizontale de l'échelle
+            targetPosition.x = transform.position.x;
+            targetPosition.z = transform.position.z;
+            // Décaler vers le haut pour éviter la collision avec le sol
+            targetPosition.y += 1f;
+            
+            // Téléporter le joueur
+            playerTransform.position = targetPosition;
+            
+            if (showDebugInfo)
+            {
+                Debug.Log($"Joueur a utilisé l'échelle: {startLevelIndex} -> {targetLevelIndex}");
+            }
+        }
+
+        /// <summary>
+        /// Téléporte le joueur vers le niveau de départ (descendre)
+        /// </summary>
+        public void UseToDescend(Transform playerTransform)
+        {
+            if (startLevel == null) return;
+            
+            // Trouver la position d'arrivée
+            Vector3 targetPosition = startLevel.GetFloorWorldPosition();
+            // Ajuster la position X/Z pour correspondre à la position horizontale de l'échelle
+            targetPosition.x = transform.position.x;
+            targetPosition.z = transform.position.z;
+            // Décaler vers le haut pour éviter la collision avec le sol
+            targetPosition.y += 1f;
+            
+            // Téléporter le joueur
+            playerTransform.position = targetPosition;
+            
+            if (showDebugInfo)
+            {
+                Debug.Log($"Joueur a utilisé l'échelle pour descendre: {targetLevelIndex} -> {startLevelIndex}");
+            }
+        }
+
+        void OnDrawGizmosSelected()
+        {
+            if (!showDebugInfo) return;
+            
+            EngineLevel[] levels = GetComponentInParent<EngineController>()?.GetComponentsInChildren<EngineLevel>();
+            if (levels == null || levels.Length == 0) return;
+            
+            EngineLevel start = null;
+            EngineLevel target = null;
+            
+            foreach (EngineLevel level in levels)
+            {
+                if (level.LevelIndex == startLevelIndex)
+                {
+                    start = level;
+                }
+                else if (level.LevelIndex == targetLevelIndex)
+                {
+                    target = level;
+                }
+            }
+            
+            if (start == null || target == null) return;
+            
+            Vector3 startPos = start.GetFloorWorldPosition();
+            Vector3 targetPos = target.GetFloorWorldPosition();
+            startPos.y += 0.1f; // Légère élévation pour visibilité
+            targetPos.y += 0.1f;
+            
+            // Position horizontale de l'échelle
+            startPos.x = transform.position.x;
+            startPos.z = transform.position.z;
+            targetPos.x = transform.position.x;
+            targetPos.z = transform.position.z;
+            
+            // Dessiner l'échelle
+            Gizmos.color = ladderColor;
+            Gizmos.DrawLine(startPos, targetPos);
+            
+            // Dessiner quelques barreaux
+            float distance = Vector3.Distance(startPos, targetPos);
+            int rungs = Mathf.Max(3, Mathf.FloorToInt(distance / 0.5f));
+            
+            for (int i = 0; i <= rungs; i++)
+            {
+                float t = i / (float)rungs;
+                Vector3 pos = Vector3.Lerp(startPos, targetPos, t);
+                Gizmos.DrawLine(
+                    pos - new Vector3(ladderWidth/2, 0, 0), 
+                    pos + new Vector3(ladderWidth/2, 0, 0)
+                );
+            }
+        }
+
+        void OnTriggerEnter(Collider other)
+        {
+            if (other.CompareTag("Player"))
+            {
+                // Changer le message pour refléter la nouvelle méthode
+                Debug.Log("Utilisez les flèches directionnelles pour monter/descendre");
+            }
+        }
+
+        // void OnTriggerStay(Collider other)
+        // {
+        //     if (other.CompareTag("Player"))
+        //     {
+        //         // Le joueur quitte la zone de l'échelle
+        //     }
+        // }
+
+        void OnTriggerExit(Collider other)
+        {
+            if (other.CompareTag("Player"))
+            {
+                // Le joueur quitte la zone de l'échelle
+            }
+        }
+
+        // Obtenir la position du haut de l'échelle
+        public Vector3 GetTopPosition()
+        {
+            if (targetLevel != null)
+            {
+                Vector3 topPos = targetLevel.GetFloorWorldPosition();
+                topPos.x = transform.position.x;
+                topPos.z = transform.position.z;
+                return topPos;
+            }
+            return transform.position + Vector3.up * 3f; // Valeur par défaut
+        }
+
+        // Obtenir la position du bas de l'échelle
+        public Vector3 GetBottomPosition()
+        {
+            if (startLevel != null)
+            {
+                Vector3 bottomPos = startLevel.GetFloorWorldPosition();
+                bottomPos.x = transform.position.x;
+                bottomPos.z = transform.position.z;
+                return bottomPos;
+            }
+            return transform.position - Vector3.up * 3f; // Valeur par défaut
+        }
+
+        // Position de sortie au niveau supérieur
+        public Vector3 GetTopExitPosition()
+        {
+            Vector3 topPos = GetTopPosition();
+            topPos.y += 1f; // Léger décalage vers le haut
+            return topPos;
         }
     }
 }

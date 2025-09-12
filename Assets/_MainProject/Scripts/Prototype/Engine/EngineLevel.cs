@@ -22,7 +22,7 @@ namespace Prototype.Engine
         [SerializeField] private bool createFloor = true; // Créer un sol pour le niveau
         [SerializeField] private bool createCeiling = false; // Créer un plafond (désactivé par défaut)
         [SerializeField] private float floorThickness = 0.1f;
-        [SerializeField] private float ladderOpeningSize = 1.5f; // Taille de l'ouverture pour les échelles
+        // Variable d'ouverture d'échelle supprimée
         
         [Header("Visualisation")]
         [SerializeField] private bool showLevelBounds = true;
@@ -42,7 +42,7 @@ namespace Prototype.Engine
         public Transform[] AccessPoints => accessPoints;
         public float WallThickness => wallThickness;
         public float FloorThickness => floorThickness;
-        public float LadderOpeningSize => ladderOpeningSize;
+        // Propriété d'ouverture d'échelle supprimée
         
         void Awake()
         {
@@ -128,19 +128,20 @@ namespace Prototype.Engine
             boundsContainer.transform.localPosition = Vector3.zero;
             boundsContainer.transform.localRotation = Quaternion.identity;
             
-            // Trouver les échelles qui traversent ce niveau
-            EngineLadder[] ladders = FindLaddersForThisLevel();
+            // Code des échelles supprimé
+            // Plus d'échelles, on crée des sols normaux
             
-            // Créer le sol avec des ouvertures pour les échelles
+            // Créer le sol normal
             if (createFloor)
             {
-                CreateFloorWithOpenings(ladders);
+                CreateSolidFloor();
             }
             
-            // Créer un plafond avec des ouvertures pour les échelles (optionnel)
+            // Créer un plafond normal (optionnel)
             if (createCeiling)
             {
-                CreateCeilingWithOpenings(ladders);
+                // Plafond non implémenté
+                Debug.Log("Plafond pas encore implémenté");
             }
             
             // Créer les 4 murs (du sol vers le haut)
@@ -152,56 +153,9 @@ namespace Prototype.Engine
             CreateWall("BackWall", new Vector3(0, wallYPosition, -levelWidth/2f - wallThickness/2f), new Vector3(levelWidth, levelHeight, wallThickness));
         }
         
-        /// <summary>
-        /// Trouve toutes les échelles qui concernent ce niveau
-        /// </summary>
-        private EngineLadder[] FindLaddersForThisLevel()
-        {
-            // Chercher toutes les échelles dans l'engin parent
-            var engineController = GetComponentInParent<EngineController>();
-            if (engineController == null) return new EngineLadder[0];
-            
-            EngineLadder[] allLadders = engineController.GetComponentsInChildren<EngineLadder>();
-            System.Collections.Generic.List<EngineLadder> relevantLadders = new System.Collections.Generic.List<EngineLadder>();
-            
-            foreach (EngineLadder ladder in allLadders)
-            {
-                // Vérifier si cette échelle concerne ce niveau
-                if (ladder.BottomLevel == this || ladder.TopLevel == this)
-                {
-                    relevantLadders.Add(ladder);
-                }
-            }
-            
-            return relevantLadders.ToArray();
-        }
+        // Méthode FindLaddersForThisLevel supprimée
         
-        /// <summary>
-        /// Crée un sol avec des ouvertures pour les échelles
-        /// </summary>
-        private void CreateFloorWithOpenings(EngineLadder[] ladders)
-        {
-            if (ladders.Length == 0)
-            {
-                // Pas d'échelles, créer un sol normal
-                CreateSolidFloor();
-                return;
-            }
-            
-            // Créer des segments de sol autour des ouvertures d'échelles
-            foreach (EngineLadder ladder in ladders)
-            {
-                // Si c'est le niveau du haut de l'échelle, créer une ouverture
-                if (ladder.TopLevel == this)
-                {
-                    CreateFloorWithHole(ladder.transform.position);
-                    return; // Une seule ouverture par niveau pour l'instant
-                }
-            }
-            
-            // Si pas d'ouverture nécessaire, créer un sol normal
-            CreateSolidFloor();
-        }
+        // Méthode CreateFloorWithOpenings supprimée
         
         /// <summary>
         /// Crée un sol normal sans ouverture
@@ -218,92 +172,11 @@ namespace Prototype.Engine
             floorCollider.isTrigger = false;
         }
         
-        /// <summary>
-        /// Crée un sol avec un trou pour l'échelle
-        /// </summary>
-        private void CreateFloorWithHole(Vector3 ladderPosition)
-        {
-            // Convertir la position de l'échelle en coordonnées locales
-            Vector3 localLadderPos = transform.InverseTransformPoint(ladderPosition);
-            
-            // Créer 4 segments de sol autour du trou
-            float halfWidth = levelWidth / 2f;
-            float halfOpening = ladderOpeningSize / 2f;
-            
-            // Sol avant (devant l'échelle)
-            if (localLadderPos.z + halfOpening < halfWidth)
-            {
-                GameObject frontFloor = new GameObject("FloorFront");
-                frontFloor.transform.SetParent(boundsContainer.transform);
-                
-                float frontZ = (localLadderPos.z + halfOpening + halfWidth) / 2f;
-                float frontDepth = halfWidth - (localLadderPos.z + halfOpening);
-                
-                frontFloor.transform.localPosition = new Vector3(0, floorYOffset - floorThickness/2f, frontZ);
-                
-                BoxCollider frontCollider = frontFloor.AddComponent<BoxCollider>();
-                frontCollider.size = new Vector3(levelWidth, floorThickness, frontDepth);
-            }
-            
-            // Sol arrière (derrière l'échelle)
-            if (localLadderPos.z - halfOpening > -halfWidth)
-            {
-                GameObject backFloor = new GameObject("FloorBack");
-                backFloor.transform.SetParent(boundsContainer.transform);
-                
-                float backZ = (localLadderPos.z - halfOpening - halfWidth) / 2f;
-                float backDepth = (localLadderPos.z - halfOpening) + halfWidth;
-                
-                backFloor.transform.localPosition = new Vector3(0, floorYOffset - floorThickness/2f, backZ);
-                
-                BoxCollider backCollider = backFloor.AddComponent<BoxCollider>();
-                backCollider.size = new Vector3(levelWidth, floorThickness, backDepth);
-            }
-            
-            // Sol gauche
-            if (localLadderPos.x - halfOpening > -halfWidth)
-            {
-                GameObject leftFloor = new GameObject("FloorLeft");
-                leftFloor.transform.SetParent(boundsContainer.transform);
-                
-                float leftX = (localLadderPos.x - halfOpening - halfWidth) / 2f;
-                float leftWidth = (localLadderPos.x - halfOpening) + halfWidth;
-                float leftZ = localLadderPos.z;
-                float leftDepth = ladderOpeningSize;
-                
-                leftFloor.transform.localPosition = new Vector3(leftX, floorYOffset - floorThickness/2f, leftZ);
-                
-                BoxCollider leftCollider = leftFloor.AddComponent<BoxCollider>();
-                leftCollider.size = new Vector3(leftWidth, floorThickness, leftDepth);
-            }
-            
-            // Sol droite
-            if (localLadderPos.x + halfOpening < halfWidth)
-            {
-                GameObject rightFloor = new GameObject("FloorRight");
-                rightFloor.transform.SetParent(boundsContainer.transform);
-                
-                float rightX = (localLadderPos.x + halfOpening + halfWidth) / 2f;
-                float rightWidth = halfWidth - (localLadderPos.x + halfOpening);
-                float rightZ = localLadderPos.z;
-                float rightDepth = ladderOpeningSize;
-                
-                rightFloor.transform.localPosition = new Vector3(rightX, floorYOffset - floorThickness/2f, rightZ);
-                
-                BoxCollider rightCollider = rightFloor.AddComponent<BoxCollider>();
-                rightCollider.size = new Vector3(rightWidth, floorThickness, rightDepth);
-            }
-        }
+        // Méthode CreateFloorWithHole supprimée
+
+        // Méthode CreateSmallFloor supprimée
         
-        /// <summary>
-        /// Crée un plafond avec des ouvertures pour les échelles
-        /// </summary>
-        private void CreateCeilingWithOpenings(EngineLadder[] ladders)
-        {
-            // Similaire à CreateFloorWithOpenings mais pour le plafond
-            // Pour l'instant, on ne crée pas de plafond pour éviter les complications
-            Debug.Log("Plafond avec ouvertures pas encore implémenté");
-        }
+        // Méthode CreateCeilingWithOpenings supprimée
         
         /// <summary>
         /// Crée un mur invisible
@@ -391,24 +264,7 @@ namespace Prototype.Engine
                 {
                     Gizmos.color = new Color(colliderColor.r, colliderColor.g, colliderColor.b, 0.3f);
                     
-                    // Trouver les échelles pour visualiser les ouvertures
-                    EngineLadder[] ladders = FindLaddersForThisLevel();
-                    
-                    if (ladders.Length > 0)
-                    {
-                        foreach (EngineLadder ladder in ladders)
-                        {
-                            if (ladder.TopLevel == this)
-                            {
-                                // Dessiner l'ouverture
-                                Vector3 localLadderPos = transform.InverseTransformPoint(ladder.transform.position);
-                                Gizmos.color = Color.green;
-                                Gizmos.DrawWireCube(new Vector3(localLadderPos.x, floorYOffset, localLadderPos.z), 
-                                                   new Vector3(ladderOpeningSize, floorThickness, ladderOpeningSize));
-                            }
-                        }
-                    }
-                    else
+                    // Visualisation des échelles supprimée
                     {
                         // Sol normal
                         Gizmos.DrawCube(new Vector3(0, floorYOffset - floorThickness/2f, 0), 

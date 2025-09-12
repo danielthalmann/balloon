@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Prototype.Engine; // Ajouter cette ligne
+using Prototype.Engine;  // Ajouter cette ligne
+using System.Collections.Generic; // Ajoutez cette ligne
 
 namespace Prototype.Player
 {
     /// <summary>
     /// Contrôleur principal du joueur
-    /// Mouvement de platformer 2D : X = gauche/droite, Y = saut, Z = échelles
+    /// Mouvement de platformer 2D : X = gauche/droite, Y = saut
     /// </summary>
     public class PlayerController : MonoBehaviour
     {
@@ -21,13 +22,18 @@ namespace Prototype.Player
         [SerializeField] private float fallMultiplier = 1.5f;
         [SerializeField] private LayerMask groundLayerMask = 1; // Layer du sol
         
+        [Header("Paramètres d'échelle")]
+        [SerializeField] private LayerMask ladderLayerMask = 1 << 0; // Ajuster selon votre configuration
+        [SerializeField] private float ladderCheckDistance = 1f;
+        [SerializeField] private KeyCode climbKey = KeyCode.E;
+        [SerializeField] private float climbSpeed = 2f;
+        
         [Header("Détection du sol")]
         [SerializeField] private Transform groundCheck;
         [SerializeField] private float groundCheckRadius = 0.3f;
         
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
-
 
         
         // Composants
@@ -39,6 +45,19 @@ namespace Prototype.Player
         private bool isGrounded;
         private bool jumpPressed;
         
+        private bool isNearLadder = false;
+        private EngineLadder nearbyLadder;
+        
+        // Ajoutez cette propriété pour stocker l'échelle détectée par trigger
+        private EngineLadder triggerDetectedLadder;
+        
+        // Variables pour l'escalade
+        private bool isClimbing = false;
+        private EngineLadder currentLadder;
+        
+        // Liste des colliders ignorés pendant l'escalade
+        private List<Collider> ignoredColliders = new List<Collider>();
+
         void Awake()
         {
             playerRigidbody = GetComponent<Rigidbody>();
@@ -67,6 +86,7 @@ namespace Prototype.Player
         void Update()
         {
             CheckGrounded();
+            CheckForLadder(); // Cette méthode contient maintenant la logique complète
             HandleRotation();
         }
         
@@ -81,6 +101,9 @@ namespace Prototype.Player
         /// </summary>
         private void HandleRotation()
         {
+            // Ne pas faire pivoter le joueur pendant l'escalade
+            if (isClimbing) return;
+            
             // Si le joueur se déplace horizontalement, mettre à jour la direction de rotation
             if (Mathf.Abs(moveInput.x) > 0.1f)
             {
@@ -104,19 +127,14 @@ namespace Prototype.Player
         /// <summary>
         /// Gère le mouvement horizontal du joueur
         /// moveInput.x = gauche/droite (axe X)
-        /// moveInput.y = sera utilisé plus tard pour les échelles (axe Z)
+        /// moveInput.y = non utilisé actuellement
         /// </summary>
         private void HandleMovement()
         {
             if (playerRigidbody == null) return;
             
-            // BLOQUER le mouvement si le joueur est en train de grimper
-            if (IsClimbing())
-            {
-                // Arrêter complètement le mouvement horizontal
-                playerRigidbody.linearVelocity = new Vector3(0, playerRigidbody.linearVelocity.y, 0);
-                return;
-            }
+            // Ne pas gérer le mouvement horizontal pendant l'escalade
+            if (isClimbing) return;
             
             // Mouvement horizontal uniquement (gauche/droite sur X)
             float targetXVelocity = moveInput.x * moveSpeed;
@@ -130,7 +148,7 @@ namespace Prototype.Player
                 currentAcceleration * Time.fixedDeltaTime
             );
             
-            // Appliquer la vélocité en gardant Y (gravité/saut) et Z (échelles futures) intacts
+            // Appliquer la vélocité en gardant Y (gravité/saut) intact
             playerRigidbody.linearVelocity = new Vector3(
                 newXVelocity, 
                 playerRigidbody.linearVelocity.y, 
@@ -144,6 +162,9 @@ namespace Prototype.Player
         private void HandleJump()
         {
             if (playerRigidbody == null) return;
+            
+            // Ne pas sauter pendant l'escalade
+            if (isClimbing) return;
             
             // Déclenchement du saut
             if (jumpPressed && isGrounded)
@@ -172,7 +193,7 @@ namespace Prototype.Player
         public bool IsGrounded => isGrounded;
         public Vector3 CurrentVelocity => playerRigidbody.linearVelocity;
         public bool IsMoving => Mathf.Abs(moveInput.x) > 0.1f; // Seulement le mouvement horizontal
-        public float VerticalInput => moveInput.y; // Pour les échelles futures
+        public float VerticalInput => moveInput.y;
         
         // Événements d'input (seul système d'input nécessaire)
         public void OnMove(InputValue value)
@@ -196,15 +217,6 @@ namespace Prototype.Player
                 interaction?.TriggerInteraction();
             }
         }
-
-        // public void OnExit(InputValue value)
-        // {
-        //     if (value.isPressed)
-        //     {
-        //         var interaction = GetComponent<PlayerEngineInteraction>();
-        //         interaction?.TriggerExit();
-        //     }
-        // }
 
         // AJOUTER cette méthode à la place (utilise la touche C) :
         public void OnCrouch(InputValue value)
@@ -230,32 +242,207 @@ namespace Prototype.Player
                 // Mouvement horizontal
                 Gizmos.color = Color.blue;
                 Gizmos.DrawRay(transform.position, Vector3.right * moveInput.x * 2f);
-                
-                // Input vertical (pour les échelles futures)
-                if (Mathf.Abs(moveInput.y) > 0.1f)
-                {
-                    Gizmos.color = Color.yellow;
-                    Gizmos.DrawRay(transform.position, Vector3.forward * moveInput.y * 2f);
-                }
             }
         }
 
         /// <summary>
-        /// Vérifie si le joueur est en train de grimper une échelle
+        /// Vérifie si le joueur est à proximité d'une échelle et gère l'escalade
         /// </summary>
-        private bool IsClimbing()
+        private void CheckForLadder()
         {
-            // Chercher une échelle à proximité qui est en cours d'utilisation
-            var nearbyLadders = Physics.OverlapSphere(transform.position, 2f);
-            foreach (var collider in nearbyLadders)
+            // Si déjà en train de grimper, gérer le mouvement vertical
+            if (isClimbing)
             {
-                var ladder = collider.GetComponent<EngineLadder>();
-                if (ladder != null && ladder.IsPlayerClimbing(gameObject))
+                // Vérifier si le joueur pousse horizontalement pour quitter l'échelle
+                if (Mathf.Abs(moveInput.x) > 0.7f) // Seuil à ajuster selon vos préférences
                 {
-                    return true;
+                    // Quitter l'échelle avec une poussée dans la direction choisie
+                    ExitLadderSideways(moveInput.x);
+                    return;
+                }
+                
+                // Mouvement vertical sur l'échelle
+                float verticalMovement = moveInput.y * climbSpeed;
+                playerRigidbody.linearVelocity = new Vector3(
+                    0f,
+                    verticalMovement,
+                    0f
+                );
+                
+                // Vérifier si le joueur a atteint le haut ou le bas de l'échelle
+                if (currentLadder != null)
+                {
+                    if (transform.position.y >= currentLadder.GetTopPosition().y)
+                    {
+                        ExitLadder(true); // Sortir par le haut
+                    }
+                    else if (transform.position.y <= currentLadder.GetBottomPosition().y)
+                    {
+                        ExitLadder(false); // Sortir par le bas
+                    }
+                }
+                
+                // Sortir de l'échelle avec la touche de saut
+                if (jumpPressed)
+                {
+                    ExitLadder(true);
+                }
+                
+                return;
+            }
+
+            // Détection de l'échelle par trigger
+            nearbyLadder = triggerDetectedLadder;
+            isNearLadder = (nearbyLadder != null);
+            
+            // Si l'échelle est trouvée et que le joueur appuie sur haut ou bas
+            if (isNearLadder && Mathf.Abs(moveInput.y) > 0.1f)
+            {
+                StartClimbing(nearbyLadder);
+            }
+        }
+        
+        /// <summary>
+        /// Commence l'escalade de l'échelle
+        /// </summary>
+        private void StartClimbing(EngineLadder ladder)
+        {
+            isClimbing = true;
+            currentLadder = ladder;
+            
+            // Désactiver la gravité pendant l'escalade
+            playerRigidbody.useGravity = false;
+            
+            // Centrer le joueur sur l'échelle
+            Vector3 newPos = transform.position;
+            newPos.x = ladder.transform.position.x;
+            newPos.z = ladder.transform.position.z;
+            transform.position = newPos;
+            
+            // Ignorer les collisions avec les sols et plafonds pendant l'escalade
+            Collider playerCollider = GetComponent<Collider>();
+            if (playerCollider != null)
+            {
+                // Trouver tous les colliders des niveaux
+                EngineLevel[] levels = FindObjectsOfType<EngineLevel>();
+                foreach (EngineLevel level in levels)
+                {
+                    // Récupérer le GameObject contenant les colliders du niveau
+                    if (level.transform.Find("LevelBounds") != null)
+                    {
+                        Transform boundsContainer = level.transform.Find("LevelBounds");
+                        
+                        // Trouver les colliders de sol
+                        foreach (Transform child in boundsContainer)
+                        {
+                            if (child.name.Contains("Floor") || child.name.Contains("Ceiling"))
+                            {
+                                Collider floorCollider = child.GetComponent<Collider>();
+                                if (floorCollider != null)
+                                {
+                                    Physics.IgnoreCollision(playerCollider, floorCollider, true);
+                                    ignoredColliders.Add(floorCollider);
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            return false;
+        }
+        
+        /// <summary>
+        /// Quitte l'échelle et revient au mode normal
+        /// </summary>
+        private void ExitLadder(bool isTop)
+        {
+            isClimbing = false;
+            
+            // Réactiver la gravité
+            playerRigidbody.useGravity = true;
+            
+            // Positionner correctement le joueur
+            if (isTop && currentLadder != null)
+            {
+                // Placer le joueur au niveau supérieur
+                Vector3 exitPos = currentLadder.GetTopExitPosition();
+                transform.position = exitPos;
+            }
+            
+            // Restaurer les collisions
+            Collider playerCollider = GetComponent<Collider>();
+            if (playerCollider != null)
+            {
+                foreach (Collider col in ignoredColliders)
+                {
+                    if (col != null)
+                        Physics.IgnoreCollision(playerCollider, col, false);
+                }
+            }
+            ignoredColliders.Clear();
+            
+            currentLadder = null;
+        }
+        
+        /// <summary>
+        /// Quitte l'échelle par le côté (tombe)
+        /// </summary>
+        private void ExitLadderSideways(float direction)
+        {
+            isClimbing = false;
+            
+            // Réactiver la gravité
+            playerRigidbody.useGravity = true;
+            
+            // Donner une petite impulsion horizontale dans la direction choisie
+            float exitForce = 3f;
+            playerRigidbody.linearVelocity = new Vector3(
+                direction * exitForce,
+                0f,
+                0f
+            );
+            
+            // Restaurer les collisions
+            Collider playerCollider = GetComponent<Collider>();
+            if (playerCollider != null)
+            {
+                foreach (Collider col in ignoredColliders)
+                {
+                    if (col != null)
+                        Physics.IgnoreCollision(playerCollider, col, false);
+                }
+            }
+            ignoredColliders.Clear();
+            
+            currentLadder = null;
+            
+            if (showDebugInfo)
+            {
+                Debug.Log("Joueur tombé de l'échelle");
+            }
+        }
+        
+        /// <summary>
+        /// Détecte la présence d'une échelle par trigger
+        /// </summary>
+        void OnTriggerEnter(Collider other)
+        {
+            EngineLadder ladder = other.GetComponent<EngineLadder>();
+            if (ladder != null)
+            {
+                triggerDetectedLadder = ladder;
+            }
+        }
+        
+        /// <summary>
+        /// Quand le joueur quitte la zone de trigger d'une échelle
+        /// </summary>
+        void OnTriggerExit(Collider other)
+        {
+            EngineLadder ladder = other.GetComponent<EngineLadder>();
+            if (ladder != null && ladder == triggerDetectedLadder)
+            {
+                triggerDetectedLadder = null;
+            }
         }
     }
 }
