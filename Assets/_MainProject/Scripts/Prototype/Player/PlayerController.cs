@@ -13,9 +13,11 @@ namespace Prototype.Player
         [SerializeField] private float moveSpeed = 5f;
         [SerializeField] private float acceleration = 10f;
         [SerializeField] private float deceleration = 10f;
+        [SerializeField] private float rotateSpeed = 12f;
         
         [Header("Paramètres de saut")]
-        [SerializeField] private float jumpForce = 7f;
+        [SerializeField] private float jumpForce = 4f;
+        [SerializeField] private float fallMultiplier = 1.5f;
         [SerializeField] private LayerMask groundLayerMask = 1; // Layer du sol
         
         [Header("Détection du sol")]
@@ -24,37 +26,21 @@ namespace Prototype.Player
         
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
+
+
         
         // Composants
         private Rigidbody playerRigidbody;
-        private PlayerInput playerInput;
         
         // Variables de mouvement
         private Vector2 moveInput;
-        private Vector3 currentVelocity;
+        private Vector3 rotationDirection;
         private bool isGrounded;
         private bool jumpPressed;
         
-        // Actions d'input
-        private InputAction moveAction;
-        private InputAction jumpAction;
-        private InputAction interactAction;
-        
         void Awake()
         {
-            // Récupérer les composants
             playerRigidbody = GetComponent<Rigidbody>();
-            playerInput = GetComponent<PlayerInput>();
-            
-            // if (playerRigidbody == null)
-            // {
-            //     Debug.LogError("PlayerController nécessite un Rigidbody !");
-            // }
-            
-            // if (playerInput == null)
-            // {
-            //     Debug.LogError("PlayerController nécessite un PlayerInput !");
-            // }
             
             // Créer le groundCheck si il n'existe pas
             if (groundCheck == null)
@@ -71,26 +57,16 @@ namespace Prototype.Player
             // Configuration du Rigidbody
             if (playerRigidbody != null)
             {
-                playerRigidbody.freezeRotation = true; // Empêcher la rotation
-                playerRigidbody.linearDamping = 0f; // Pas de drag pour un contrôle précis
-                
-                // Bloquer uniquement la rotation, laisser X, Y, Z libres pour le mouvement
+                playerRigidbody.freezeRotation = false;
+                playerRigidbody.linearDamping = 0f;
                 playerRigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-            }
-            
-            // Récupérer les actions d'input
-            if (playerInput != null)
-            {
-                moveAction = playerInput.actions["Move"];
-                jumpAction = playerInput.actions["Jump"];
-                interactAction = playerInput.actions["Interact"];
             }
         }
         
         void Update()
         {
-            HandleInput();
             CheckGrounded();
+            HandleRotation();
         }
         
         void FixedUpdate()
@@ -98,20 +74,19 @@ namespace Prototype.Player
             HandleMovement();
             HandleJump();
         }
-        
+
         /// <summary>
-        /// Gère la lecture des inputs
+        /// Gère la rotation du personnage selon la direction de mouvement
         /// </summary>
-        private void HandleInput()
+        private void HandleRotation()
         {
-            if (moveAction != null)
+            // Si le joueur se déplace horizontalement, mettre à jour la direction de rotation
+            if (Mathf.Abs(moveInput.x) > 0.1f)
             {
-                moveInput = moveAction.ReadValue<Vector2>();
-            }
-            
-            if (jumpAction != null && jumpAction.WasPressedThisFrame())
-            {
-                jumpPressed = true;
+                rotationDirection = new Vector3(moveInput.x, 0, 0);
+                
+                // Appliquer la rotation en douceur
+                transform.right = Vector3.Slerp(transform.right, rotationDirection, rotateSpeed * Time.deltaTime);
             }
         }
         
@@ -155,11 +130,14 @@ namespace Prototype.Player
         }
         
         /// <summary>
-        /// Gère le saut du joueur sur l'axe Y
+        /// Gère le saut du joueur : déclenchement et physique améliorée
         /// </summary>
         private void HandleJump()
         {
-            if (jumpPressed && isGrounded && playerRigidbody != null)
+            if (playerRigidbody == null) return;
+            
+            // Déclenchement du saut
+            if (jumpPressed && isGrounded)
             {
                 // Saut sur l'axe Y (vertical classique)
                 playerRigidbody.linearVelocity = new Vector3(
@@ -167,6 +145,12 @@ namespace Prototype.Player
                     jumpForce,  // Y = saut vertical
                     playerRigidbody.linearVelocity.z
                 );
+            }
+            
+            // Physique améliorée : gravité renforcée en chute
+            if (playerRigidbody.linearVelocity.y < 0)
+            {
+                playerRigidbody.linearVelocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
             }
             
             jumpPressed = false;
@@ -177,11 +161,11 @@ namespace Prototype.Player
         /// </summary>
         public Vector2 MoveInput => moveInput;
         public bool IsGrounded => isGrounded;
-        public Vector3 CurrentVelocity => playerRigidbody != null ? playerRigidbody.linearVelocity : Vector3.zero;
+        public Vector3 CurrentVelocity => playerRigidbody.linearVelocity;
         public bool IsMoving => Mathf.Abs(moveInput.x) > 0.1f; // Seulement le mouvement horizontal
         public float VerticalInput => moveInput.y; // Pour les échelles futures
         
-        // Événements d'input (appelés par le PlayerInput)
+        // Événements d'input (seul système d'input nécessaire)
         public void OnMove(InputValue value)
         {
             moveInput = value.Get<Vector2>();
@@ -199,12 +183,27 @@ namespace Prototype.Player
         {
             if (value.isPressed)
             {
-                // Notifier le système d'interaction
                 var interaction = GetComponent<PlayerEngineInteraction>();
-                if (interaction != null)
-                {
-                    interaction.TriggerInteraction();
-                }
+                interaction?.TriggerInteraction();
+            }
+        }
+
+        // public void OnExit(InputValue value)
+        // {
+        //     if (value.isPressed)
+        //     {
+        //         var interaction = GetComponent<PlayerEngineInteraction>();
+        //         interaction?.TriggerExit();
+        //     }
+        // }
+
+        // AJOUTER cette méthode à la place (utilise la touche C) :
+        public void OnCrouch(InputValue value)
+        {
+            if (value.isPressed)
+            {
+                var interaction = GetComponent<PlayerEngineInteraction>();
+                interaction?.TriggerExit();
             }
         }
         

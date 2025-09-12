@@ -1,195 +1,179 @@
 using UnityEngine;
 using Prototype.Engine;
-using Prototype.Player;
 
 namespace Prototype.Player
 {
     /// <summary>
-    /// Gère l'interaction entre le joueur et les engins volants
+    /// Gère l'interaction simple entre le joueur et les engins volants
+    /// E = monter, Q = descendre
     /// </summary>
     public class PlayerEngineInteraction : MonoBehaviour
     {
         [Header("Configuration")]
         [SerializeField] private float interactionRange = 2f;
-        [SerializeField] private LayerMask engineLayerMask = -1; // Par défaut, tous les layers
+        [SerializeField] private LayerMask engineLayerMask = -1;
         
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
         
-        // Composants
-        private PlayerController playerController;
-        
-        // État actuel
-        private EngineController currentEngine;
-        private EngineLevel currentLevel;
+        // État simple
+        private EngineController nearbyEngine;
         private bool isOnEngine = false;
-        
-        // Transform original du joueur
         private Transform originalParent;
+        
+        // Propriétés publiques
+        public bool IsOnEngine => isOnEngine;
+        public EngineController CurrentEngine => isOnEngine ? nearbyEngine : null;
         
         void Awake()
         {
-            playerController = GetComponent<PlayerController>();
             originalParent = transform.parent;
-            
-            // if (playerController == null)
-            // {
-            //     Debug.LogError("PlayerEngineInteraction nécessite un PlayerController !");
-            // }
         }
         
         void Update()
         {
-            if (!isOnEngine)
+            // Chercher un engin proche seulement si on n'est pas déjà sur un engin
+            // ET seulement de temps en temps pour éviter les performances
+            if (!isOnEngine && Time.fixedTime % 0.1f < Time.fixedDeltaTime)
             {
-                CheckForNearbyEngine();
+                FindNearbyEngine();
             }
         }
         
         /// <summary>
-        /// Méthode publique appelée par le PlayerController quand E est pressé
+        /// Cherche l'engin le plus proche (version simplifiée)
         /// </summary>
-        public void TriggerInteraction()
+        private void FindNearbyEngine()
         {
-            // Debug.Log("TriggerInteraction appelé !"); // DEBUG
+            Collider[] colliders = Physics.OverlapSphere(transform.position, interactionRange, engineLayerMask);
             
-            if (!isOnEngine && currentEngine != null)
-            {
-                // Debug.Log($"Tentative de montée sur l'engin : {currentEngine.name}"); // DEBUG
-                BoardEngine();
-            }
-            else if (isOnEngine)
-            {
-                // Debug.Log("Tentative de descente de l'engin"); // DEBUG
-                LeaveEngine();
-            }
-            else
-            {
-                Debug.Log($"Pas d'engin détecté. isOnEngine: {isOnEngine}, currentEngine: {(currentEngine != null ? currentEngine.name : "null")}"); // DEBUG
-            }
-        }
-        
-        /// <summary>
-        /// Cherche les engins volants à proximité
-        /// </summary>
-        private void CheckForNearbyEngine()
-        {
-            Collider[] nearbyColliders = Physics.OverlapSphere(transform.position, interactionRange, engineLayerMask);
+            nearbyEngine = null;
+            float closestDistance = float.MaxValue;
             
-            // DEBUG : Afficher combien de colliders sont détectés
-            // if (nearbyColliders.Length > 0 && showDebugInfo)
-            // {
-            //     Debug.Log($"Colliders détectés : {nearbyColliders.Length}");
-            // }
-            
-            EngineController nearestEngine = null;
-            float nearestDistance = float.MaxValue;
-            
-            foreach (Collider collider in nearbyColliders)
+            foreach (Collider collider in colliders)
             {
                 EngineController engine = collider.GetComponentInParent<EngineController>();
                 if (engine != null)
                 {
                     float distance = Vector3.Distance(transform.position, engine.transform.position);
-                    if (distance < nearestDistance)
+                    if (distance < closestDistance)
                     {
-                        nearestDistance = distance;
-                        nearestEngine = engine;
+                        closestDistance = distance;
+                        nearbyEngine = engine;
                     }
-                    
-                    // DEBUG
-                    // if (showDebugInfo)
-                    // {
-                    //     Debug.Log($"Engin trouvé : {engine.name} à distance {distance:F2}");
-                    // }
                 }
             }
-            
-            currentEngine = nearestEngine;
         }
         
         /// <summary>
-        /// Monte sur l'engin volant
+        /// Appelé par PlayerController quand E est pressé
+        /// </summary>
+        public void TriggerInteraction()
+        {
+            if (!isOnEngine && nearbyEngine != null)
+            {
+                BoardEngine();
+            }
+        }
+        
+        /// <summary>
+        /// Appelé par PlayerController quand C est pressé (descendre uniquement)
+        /// </summary>
+        public void TriggerExit()
+        {
+            Debug.Log("TriggerExit appelé par la touche C !"); // Debug plus précis
+            if (isOnEngine)
+            {
+                LeaveEngine();
+            }
+        }
+        
+        /// <summary>
+        /// Monte sur l'engin avec positionnement précis
         /// </summary>
         private void BoardEngine()
         {
-            if (currentEngine == null) return;
+            if (nearbyEngine == null) return;
             
-            // Trouver le niveau le plus proche
-            EngineLevel[] levels = currentEngine.GetComponentsInChildren<EngineLevel>();
-            EngineLevel closestLevel = null;
-            float closestDistance = float.MaxValue;
+            // Attacher le joueur à l'engin
+            transform.SetParent(nearbyEngine.transform);
+            isOnEngine = true;
             
-            // Debug.Log($"Niveaux trouvés : {levels.Length}"); // DEBUG
-            
-            foreach (EngineLevel level in levels)
+            // Chercher un point d'accès ou utiliser le centre
+            Transform accessPoint = FindAccessPoint();
+            if (accessPoint != null)
             {
-                float distance = Vector3.Distance(transform.position, level.transform.position);
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    closestLevel = level;
-                }
-            }
-            
-            if (closestLevel != null)
-            {
-                // Attacher le joueur à l'engin
-                transform.SetParent(currentEngine.transform);
-                currentLevel = closestLevel;
-                isOnEngine = true;
-                
-                // Positionner le joueur sur le niveau
-                Transform accessPoint = closestLevel.GetClosestAccessPoint(transform.position);
                 transform.position = accessPoint.position + Vector3.up * 1f;
-                
-                // Debug.Log($"Joueur monté sur l'engin au niveau {closestLevel.LevelIndex}");
             }
             else
             {
-                Debug.LogError("Aucun niveau trouvé sur l'engin !"); // DEBUG
+                // Par défaut : centre de l'engin + hauteur
+                Vector3 engineCenter = nearbyEngine.transform.position;
+                transform.position = engineCenter + Vector3.up * 1.5f;
             }
+            
+            if (showDebugInfo)
+            {
+                Debug.Log($"Monté sur l'engin : {nearbyEngine.name}");
+            }
+        }
+
+        /// <summary>
+        /// Trouve un point d'accès sur l'engin (optionnel)
+        /// </summary>
+        private Transform FindAccessPoint()
+        {
+            // Chercher un enfant nommé "AccessPoint" ou similaire
+            Transform accessPoint = nearbyEngine.transform.Find("AccessPoint");
+            if (accessPoint != null) return accessPoint;
+            
+            // Ou chercher le premier EngineLevel
+            EngineLevel level = nearbyEngine.GetComponentInChildren<EngineLevel>();
+            if (level != null) return level.transform;
+            
+            return null;
         }
         
         /// <summary>
-        /// Descend de l'engin volant
+        /// Descend de l'engin (version corrigée)
         /// </summary>
         private void LeaveEngine()
         {
             if (!isOnEngine) return;
             
-            // Détacher le joueur de l'engin
-            transform.SetParent(originalParent);
+            Debug.Log("LeaveEngine exécuté !"); // Debug pour voir d'où ça vient
             
-            // Réinitialiser l'état
-            currentEngine = null;
-            currentLevel = null;
+            // Téléporter le joueur à côté de l'engin avant de détacher
+            Vector3 exitPosition = nearbyEngine.transform.position + Vector3.right * 3f + Vector3.up * 1f;
+            transform.position = exitPosition;
+            
+            // Détacher le joueur
+            transform.SetParent(originalParent);
             isOnEngine = false;
             
-            // Debug.Log("Joueur descendu de l'engin");
+            // IMPORTANT : Garder la référence de l'engin pour pouvoir remonter
+            // nearbyEngine reste disponible pour une nouvelle interaction
+            
+            if (showDebugInfo)
+            {
+                Debug.Log("Descendu de l'engin");
+            }
         }
         
-        /// <summary>
-        /// Propriétés publiques
-        /// </summary>
-        public bool IsOnEngine => isOnEngine;
-        public EngineController CurrentEngine => currentEngine;
-        public EngineLevel CurrentLevel => currentLevel;
-        
-        // Debug visuel
+        // Debug visuel simplifié
         void OnDrawGizmosSelected()
         {
             if (!showDebugInfo) return;
             
-            // Afficher la portée d'interaction
+            // Portée d'interaction
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, interactionRange);
             
-            // Afficher l'engin détecté
-            if (currentEngine != null && !isOnEngine)
+            // Engin détectable
+            if (nearbyEngine != null && !isOnEngine)
             {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawLine(transform.position, currentEngine.transform.position);
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(transform.position, nearbyEngine.transform.position);
             }
         }
     }

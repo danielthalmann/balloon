@@ -139,7 +139,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &57813024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -182,7 +182,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 870577c8824e1434b8d9cec37d728546, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  interactionRange: 2
+  interactionRange: 4
   engineLayerMask:
     serializedVersion: 2
     m_Bits: 8
@@ -674,9 +674,16 @@ MonoBehaviour:
   levelHeight: 3.2
   floorYOffset: 0
   accessPoints: []
+  wallThickness: 0.2
+  createFloor: 1
+  createCeiling: 0
+  floorThickness: 0.1
+  ladderOpeningSize: 1.5
   showLevelBounds: 1
+  showColliderBounds: 1
   levelColor: {r: 0, g: 0, b: 1, a: 1}
   floorColor: {r: 0, g: 1, b: 0, a: 1}
+  colliderColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!23 &504416344
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -749,7 +756,13 @@ MonoBehaviour:
   floorThickness: 0.1
   ladderOpeningSize: 1.5
   showBounds: 1
-  boundsColor: {r: 1, g: 0, b: 0, a: 1}
+  boundsColor:
+    r: 1
+    g: 0
+    b: 0
+    a: 1
+  engineLevel: {fileID: 0}
+  boundsContainer: {fileID: 0}
 --- !u!1001 &508308941
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1045,9 +1058,16 @@ MonoBehaviour:
   levelHeight: 3.2
   floorYOffset: 0
   accessPoints: []
+  wallThickness: 0.2
+  createFloor: 1
+  createCeiling: 0
+  floorThickness: 0.1
+  ladderOpeningSize: 1.5
   showLevelBounds: 1
+  showColliderBounds: 1
   levelColor: {r: 0, g: 0, b: 1, a: 1}
   floorColor: {r: 0, g: 1, b: 0, a: 1}
+  colliderColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!23 &724368550
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1120,7 +1140,13 @@ MonoBehaviour:
   floorThickness: 0.1
   ladderOpeningSize: 1.5
   showBounds: 1
-  boundsColor: {r: 1, g: 0, b: 0, a: 1}
+  boundsColor:
+    r: 1
+    g: 0
+    b: 0
+    a: 1
+  engineLevel: {fileID: 0}
+  boundsContainer: {fileID: 0}
 --- !u!1 &765095207
 GameObject:
   m_ObjectHideFlags: 0
@@ -6132,6 +6158,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 4218354331822656935, guid: 2d82efb841688d04ebc443d9915ac636, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7834238893370823405, guid: 2d82efb841688d04ebc443d9915ac636, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2
@@ -6587,9 +6617,16 @@ MonoBehaviour:
   levelHeight: 3.2
   floorYOffset: 0
   accessPoints: []
+  wallThickness: 0.2
+  createFloor: 1
+  createCeiling: 0
+  floorThickness: 0.1
+  ladderOpeningSize: 1.5
   showLevelBounds: 1
+  showColliderBounds: 1
   levelColor: {r: 0, g: 0, b: 1, a: 1}
   floorColor: {r: 0, g: 1, b: 0, a: 1}
+  colliderColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!23 &1711986645
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -6662,7 +6699,13 @@ MonoBehaviour:
   floorThickness: 0.1
   ladderOpeningSize: 1.5
   showBounds: 1
-  boundsColor: {r: 1, g: 0, b: 0, a: 1}
+  boundsColor:
+    r: 1
+    g: 0
+    b: 0
+    a: 1
+  engineLevel: {fileID: 0}
+  boundsContainer: {fileID: 0}
 --- !u!1 &1769844637
 GameObject:
   m_ObjectHideFlags: 0
