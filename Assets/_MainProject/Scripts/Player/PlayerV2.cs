@@ -1,17 +1,19 @@
-using Prototype.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Prototype.Player;
 
 public class PlayerV2 : MonoBehaviour
 {
     [SerializeField]
-    private float moveSpeed = 5f;
+    private float moveSpeed = 2.5f;
     [SerializeField]
     private float rotateSpeed = 12f;
     [SerializeField]
     float bodyHeight = .5f;
     [SerializeField]
     float bodyRadius = 1f;
+    [SerializeField]
+    private float jumpForce = 5f;
 
     float vertivalSpeed = 0;
 
@@ -30,8 +32,16 @@ public class PlayerV2 : MonoBehaviour
 
     [SerializeField]
     bool isOnLadder = false;
+    [SerializeField]
+    private LayerMask ladderMask;
+    [SerializeField]
+    private LayerMask groundMask;
 
+    private Bounds ladderBounds;
 
+    bool onGround = false;
+
+        [SerializeField]
     private Vector3 rotationDirection;
 
     [SerializeField]
@@ -75,7 +85,8 @@ public class PlayerV2 : MonoBehaviour
 
         if(interactAction.WasPressedThisFrame())
         {
-            playerInteraction.TriggerInteraction();
+            if(playerInteraction)
+                playerInteraction.TriggerInteraction();
         }
 
         /*
@@ -112,6 +123,20 @@ public class PlayerV2 : MonoBehaviour
         moveDirection = (horizontalDirection + verticanDirection).normalized;
 
         float moveDistance = moveSpeed * Time.deltaTime;
+        float jumpDistance = jumpForce * Time.deltaTime;
+        if (isOnLadder)
+        {
+            jumpDistance = moveDistance;
+        } else
+        {
+            if(onGround)
+            {
+                if (verticanDirection.y < 0)
+                { 
+                    verticanDirection.y = 0;
+                }
+            }
+        }
 
 
         bool touch = Physics.CapsuleCast(transform.position, transform.position + Vector3.up * bodyHeight, bodyRadius, rotationDirection, out hitInfoFront, moveDistance);
@@ -124,11 +149,7 @@ public class PlayerV2 : MonoBehaviour
 
         }
 
-        if (!touch || isOnLadder)
-        {
-            transform.position += moveDirection * moveDistance;
-        }
-
+        transform.position += (horizontalDirection.normalized * moveDistance * (touch ? 0 : 1)) + (verticanDirection.normalized * jumpDistance);
         
         transform.position += (-transform.up * vertivalSpeed);
        
@@ -170,7 +191,13 @@ public class PlayerV2 : MonoBehaviour
             if (debugFrontCast)
             {
                 Gizmos.color = Color.red;
-                Gizmos.DrawRay(transform.position + Vector3.up * bodyHeight, rotationDirection * bodyRadius);
+                Gizmos.DrawRay(transform.position, rotationDirection * .5f);
+
+                Vector3 start = transform.position + (transform.right * -.5f);
+                Gizmos.color = Color.blue;
+                Gizmos.DrawRay(start + (transform.up * bodyHeight), transform.right * .5f);
+
+
 
                 Gizmos.color = Color.green;
                 Gizmos.DrawSphere(hitInfoFront.point, .01f);
@@ -188,7 +215,7 @@ public class PlayerV2 : MonoBehaviour
     private void DetectGround()
     {
 
-        bool onGround = Physics.Raycast(transform.position, -transform.up, out hitInfoGround, vertivalSpeed + bodyRadius);
+        onGround = Physics.Raycast(transform.position, -transform.up, out hitInfoGround, vertivalSpeed + bodyRadius, groundMask);
         if (onGround && !isOnLadder)
         {
             vertivalSpeed = 0;
@@ -198,22 +225,28 @@ public class PlayerV2 : MonoBehaviour
 
     private void DetectLadder()
     {
-        bool newStateLader = false;
 
-        RaycastHit hitInfo;
-
-        if (Physics.Raycast(transform.position, transform.right, out hitInfo, .1f))
+        if (isOnLadder)
         {
-            Debug.Log(hitInfo);
-            if (hitInfo.collider.gameObject.GetComponent<Ladder>())
+            if (!ladderBounds.Contains(transform.position))
             {
-                newStateLader = true;
+                isOnLadder = false;
             }
-        }
 
-        if (isOnLadder != newStateLader)
+        } else
         {
-            isOnLadder = newStateLader;
+            
+            RaycastHit hitInfo;
+
+            Vector3 start = transform.position + (transform.right * -.5f);
+
+            if (Physics.Raycast(start, transform.right, out hitInfo, .5f, ladderMask))
+            {
+                ladderBounds = hitInfo.collider.bounds;
+                isOnLadder = true;
+            }
+
+
         }
 
         if (!isOnLadder)
