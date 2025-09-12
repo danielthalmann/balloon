@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Prototype.Engine; // Ajouter cette ligne
 
 namespace Prototype.Player
 {
@@ -108,6 +109,14 @@ namespace Prototype.Player
         private void HandleMovement()
         {
             if (playerRigidbody == null) return;
+            
+            // BLOQUER le mouvement si le joueur est en train de grimper
+            if (IsClimbing())
+            {
+                // Arrêter complètement le mouvement horizontal
+                playerRigidbody.linearVelocity = new Vector3(0, playerRigidbody.linearVelocity.y, 0);
+                return;
+            }
             
             // Mouvement horizontal uniquement (gauche/droite sur X)
             float targetXVelocity = moveInput.x * moveSpeed;
@@ -229,6 +238,24 @@ namespace Prototype.Player
                     Gizmos.DrawRay(transform.position, Vector3.forward * moveInput.y * 2f);
                 }
             }
+        }
+
+        /// <summary>
+        /// Vérifie si le joueur est en train de grimper une échelle
+        /// </summary>
+        private bool IsClimbing()
+        {
+            // Chercher une échelle à proximité qui est en cours d'utilisation
+            var nearbyLadders = Physics.OverlapSphere(transform.position, 2f);
+            foreach (var collider in nearbyLadders)
+            {
+                var ladder = collider.GetComponent<EngineLadder>();
+                if (ladder != null && ladder.IsPlayerClimbing(gameObject))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

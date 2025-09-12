@@ -167,13 +167,8 @@ namespace Prototype.Engine
             playerIsClimbing = true;
             playerOriginalParent = currentPlayer.transform.parent;
             
-            // Aligner sur l'échelle
-            Vector3 playerPos = currentPlayer.transform.position;
-            currentPlayer.transform.position = new Vector3(
-                transform.position.x,
-                playerPos.y,
-                transform.position.z
-            );
+            // PAS de téléportation ! Le joueur reste où il est
+            // On aligne juste progressivement sur l'axe X de l'échelle
             
             // Désactiver la gravité
             Rigidbody playerRb = currentPlayer.GetComponent<Rigidbody>();
@@ -194,30 +189,52 @@ namespace Prototype.Engine
             engineTransform.position.y + localBottomY : bottomY;
         
         /// <summary>
-        /// Mouvement vertical sur l'échelle
+        /// Mouvement vertical sur l'échelle avec alignement progressif
         /// </summary>
         private void ClimbVertical(float input)
         {
             if (currentPlayer == null) return;
             
-            Vector3 movement = Vector3.up * input * climbSpeed * Time.deltaTime;
-            Vector3 newPosition = currentPlayer.transform.position + movement;
+            Vector3 currentPos = currentPlayer.transform.position;
             
+            // Mouvement vertical
+            Vector3 verticalMovement = Vector3.up * input * climbSpeed * Time.deltaTime;
+            Vector3 newPosition = currentPos + verticalMovement;
+            
+            // Alignement progressif sur l'échelle (pas instantané)
+            float alignSpeed = 2f; // Vitesse d'alignement
+            newPosition.x = Mathf.MoveTowards(currentPos.x, transform.position.x, alignSpeed * Time.deltaTime);
+            
+            // Limiter la hauteur
             newPosition.y = Mathf.Clamp(newPosition.y, BottomLimit, TopLimit);
+            
             currentPlayer.transform.position = newPosition;
         }
         
         /// <summary>
-        /// Sortir de l'échelle horizontalement
+        /// Sortir de l'échelle avec mouvement fluide
         /// </summary>
         private void ExitLadder(float horizontalInput)
         {
             if (currentPlayer == null) return;
             
-            Vector3 exitPosition = currentPlayer.transform.position + Vector3.right * (horizontalInput > 0 ? 1f : -1f);
-            currentPlayer.transform.position = exitPosition;
+            // Mouvement fluide vers la sortie au lieu de téléportation
+            Vector3 currentPos = currentPlayer.transform.position;
+            float exitSpeed = 3f; // Vitesse de sortie
             
-            StopClimbing();
+            Vector3 exitMovement = Vector3.right * horizontalInput * exitSpeed * Time.deltaTime;
+            Vector3 newPosition = currentPos + exitMovement;
+            
+            // Sortir quand on est assez loin de l'échelle
+            float distanceFromLadder = Mathf.Abs(newPosition.x - transform.position.x);
+            if (distanceFromLadder > 1f)
+            {
+                StopClimbing();
+            }
+            else
+            {
+                currentPlayer.transform.position = newPosition;
+            }
         }
         
         /// <summary>
@@ -276,5 +293,13 @@ namespace Prototype.Engine
         // Propriétés pour compatibilité avec EngineLevel
         public EngineLevel BottomLevel => null;
         public EngineLevel TopLevel => null;
+
+        /// <summary>
+        /// Vérifie si un joueur spécifique est en train de grimper cette échelle
+        /// </summary>
+        public bool IsPlayerClimbing(GameObject player)
+        {
+            return playerIsClimbing && currentPlayer == player;
+        }
     }
 }
