@@ -6,16 +6,20 @@
     border-bottom-left-radius: 8px;
     margin-top: 8px;
     margin-bottom: 8px;
-    background-color: rgb(202, 202, 202);
+    background-color: rgba(0, 0, 0, 0);
     border-bottom-right-radius: 8px;
-    border-left-color: rgba(31, 31, 31, 0.84);
-    border-right-color: rgba(31, 31, 31, 0.84);
-    border-top-color: rgba(31, 31, 31, 0.84);
-    border-bottom-color: rgba(31, 31, 31, 0.84);
+    border-left-color: rgba(0, 0, 0, 0);
+    border-right-color: rgba(0, 0, 0, 0);
+    border-top-color: rgba(0, 0, 0, 0);
+    border-bottom-color: rgba(0, 0, 0, 0);
+    font-size: 36px;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
 }
 
 .primary {
-    background-color: rgb(126, 188, 255);
 }
 
 .button:hover {
