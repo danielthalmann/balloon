@@ -731,7 +731,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ade52d1d4bf54a74abe5a1e95517021b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 948788430}
   m_SourcePrefab: {fileID: 100100000, guid: ade52d1d4bf54a74abe5a1e95517021b, type: 3}
 --- !u!1 &616810332
 GameObject:
@@ -1255,6 +1258,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!1 &948788429 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ade52d1d4bf54a74abe5a1e95517021b, type: 3}
+  m_PrefabInstance: {fileID: 476784408}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &948788430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 948788429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eec72b27d4abc5b4fb1ffe3fc8d10108, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  map: {fileID: 984368786}
+  speed: 2
 --- !u!1 &955495523
 GameObject:
   m_ObjectHideFlags: 0
@@ -1410,6 +1432,11 @@ MonoBehaviour:
   fadeImage: {fileID: 0}
   fadeColor: {r: 0, g: 0, b: 0, a: 0}
   duration: 0
+--- !u!1 &984368786 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -4705991403798208592, guid: ade52d1d4bf54a74abe5a1e95517021b, type: 3}
+  m_PrefabInstance: {fileID: 476784408}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1052033941
 GameObject:
   m_ObjectHideFlags: 0
@@ -1551,6 +1578,9 @@ MonoBehaviour:
   startSceneName: Level_Daniel_2
   CreditsSceneName: 
   menuSceneName: 
+  resumeEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1164435852
 MonoBehaviour:
   m_ObjectHideFlags: 0
