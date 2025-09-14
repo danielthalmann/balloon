@@ -32,7 +32,8 @@ public class Altimeter : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        diff = minMax.max - minMax.min;
+        cursor.transform.localPosition = new Vector3(cursor.transform.localPosition.x, minMax.min + (diff * value), cursor.transform.localPosition.z);
     }
 
   

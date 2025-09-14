@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class MenuManager : MonoBehaviour
 {
@@ -8,11 +7,17 @@ public class MenuManager : MonoBehaviour
     public string CreditsSceneName;
     public string menuSceneName;
 
+    public UnityEvent resumeEvent;
+
     public void ButtonMenu()
     {
         SceneLoaderManager.getInstance().LoadScene(menuSceneName);
     }
 
+    public void ButtonResume()
+    {
+        resumeEvent.Invoke();
+    }
 
     public void ButtonStart()
     {

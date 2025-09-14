@@ -66,13 +66,21 @@ public class SceneLoaderManager : MonoBehaviour
             Canvas canvas = FindAnyObjectByType<Canvas>();
             if (!canvas)
             {
-                Debug.LogError("Fail load cursor. The scene can contain canvas");
+                //Debug.LogWarning("Fail load cursor. The scene contain nothing canvas");
+                GameObject gameObjectCanvas = new GameObject();
+                gameObjectCanvas.AddComponent<Canvas>();
+                gameObjectCanvas.AddComponent<CanvasScaler>();
+                gameObjectCanvas.name = "Canvas";
+                canvas = FindAnyObjectByType<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.worldCamera = Camera.main;
+                canvas.sortingOrder = 100;
             }
             GameObject gameObject = new GameObject();
 
             fadeImage = gameObject.AddComponent<Image>();
             gameObject.name = "Splash screen";
-            gameObject.transform.parent = canvas.transform;
+            gameObject.transform.SetParent(canvas.transform);
             AdjustPanelToScreen(gameObject, 0);
         }
 

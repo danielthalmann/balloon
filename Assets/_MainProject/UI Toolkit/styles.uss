@@ -1,0 +1,27 @@
+.button {
+    padding-left: 50px;
+    padding-right: 50px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    background-color: rgb(202, 202, 202);
+    border-bottom-right-radius: 8px;
+    border-left-color: rgba(31, 31, 31, 0.84);
+    border-right-color: rgba(31, 31, 31, 0.84);
+    border-top-color: rgba(31, 31, 31, 0.84);
+    border-bottom-color: rgba(31, 31, 31, 0.84);
+}
+
+.primary {
+    background-color: rgb(126, 188, 255);
+}
+
+.button:hover {
+    transition-duration: 0.5s;
+    scale: 1.1 1.1;
+    transition-timing-function: ease-out-elastic;
+    transition-property: scale;
+    transition-delay: 0s;
+}
