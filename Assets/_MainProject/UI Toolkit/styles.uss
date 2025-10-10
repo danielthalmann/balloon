@@ -21,6 +21,9 @@
 
 .primary {
 }
+.button:active {
+    scale: 1.5 1.5;
+}
 
 .button:hover {
     transition-duration: 0.5s;

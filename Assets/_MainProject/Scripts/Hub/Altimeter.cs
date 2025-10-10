@@ -15,7 +15,7 @@ public class Altimeter : MonoBehaviour
 
     [SerializeField]
     [Range(0, 1f)]
-    float value = 0.5f;
+    public float value = 0.5f;
 
     [SerializeField]
     [Range(0, 10f)]

@@ -1276,7 +1276,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   map: {fileID: 984368786}
-  speed: 2
+  speed: 3
 --- !u!1 &955495523
 GameObject:
   m_ObjectHideFlags: 0
@@ -1581,6 +1581,7 @@ MonoBehaviour:
   resumeEvent:
     m_PersistentCalls:
       m_Calls: []
+  cam: {fileID: 783407466}
 --- !u!114 &1164435852
 MonoBehaviour:
   m_ObjectHideFlags: 0

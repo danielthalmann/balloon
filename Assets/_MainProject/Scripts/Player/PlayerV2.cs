@@ -36,6 +36,8 @@ public class PlayerV2 : MonoBehaviour
     private LayerMask ladderMask;
     [SerializeField]
     private LayerMask groundMask;
+    [SerializeField]
+    private LayerMask activableMask;
 
     private Bounds ladderBounds;
 
@@ -138,16 +140,22 @@ public class PlayerV2 : MonoBehaviour
             }
         }
 
+        // prend tous les masques sauf ladderMask, groundMask et activableMask
+        LayerMask lm = ~(ladderMask | groundMask | activableMask);
 
-        bool touch = Physics.CapsuleCast(transform.position, transform.position + Vector3.up * bodyHeight, bodyRadius, rotationDirection, out hitInfoFront, moveDistance);
+
+        bool touch = Physics.CapsuleCast(transform.position, transform.position + Vector3.up * bodyHeight, bodyRadius, rotationDirection, out hitInfoFront, moveDistance, lm);
+        /*
         if (touch)
         {
+
             if (hitInfoFront.collider.isTrigger)
             {
                 touch = false;
             }
 
         }
+        */
 
         transform.position += (horizontalDirection.normalized * moveDistance * (touch ? 0 : 1)) + (verticanDirection.normalized * jumpDistance);
         
