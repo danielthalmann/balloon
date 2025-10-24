@@ -10,6 +10,8 @@ namespace Prototype.Engine
     {
         [Header("Paramètres de chute")]
         [SerializeField] private float fallSpeed = 2f; // Vitesse de chute en unités par seconde
+        [SerializeField] private float groundCheckDistance = 0.5f; // Distance de détection du sol
+        [SerializeField] private LayerMask groundLayer; // Layer du sol extérieur
         
         [Header("Paramètres de remontée")]
         [SerializeField] private float liftForce = 5f; // Force de remontée
@@ -57,17 +59,25 @@ namespace Prototype.Engine
         {
             if (EngineRigidbody == null) return;
             
-            if (!isLifting)
-            {
-                // Appliquer la chute
-                EngineRigidbody.linearVelocity = new Vector3(
-                    EngineRigidbody.linearVelocity.x,
-                    -fallSpeed,
-                    EngineRigidbody.linearVelocity.z
-                );
-            }
+            // Vérifier si on touche le sol
+            bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
             
-            currentVerticalVelocity = EngineRigidbody.linearVelocity.y;
+            if (!isLifting && !isGrounded)
+            {
+                // Pour un Rigidbody Kinematic, utiliser MovePosition
+                Vector3 newPosition = EngineRigidbody.position + Vector3.down * fallSpeed * Time.fixedDeltaTime;
+                EngineRigidbody.MovePosition(newPosition);
+                
+                currentVerticalVelocity = -fallSpeed;
+            }
+            else if (isGrounded)
+            {
+                currentVerticalVelocity = 0f;
+            }
+            else
+            {
+                currentVerticalVelocity = liftForce;
+            }
         }
         
         /// <summary>
@@ -79,12 +89,9 @@ namespace Prototype.Engine
             
             isLifting = true;
             
-            // Appliquer la force de remontée
-            EngineRigidbody.linearVelocity = new Vector3(
-                EngineRigidbody.linearVelocity.x,
-                liftForce,
-                EngineRigidbody.linearVelocity.z
-            );
+            // Pour un Rigidbody Kinematic, utiliser MovePosition
+            Vector3 newPosition = EngineRigidbody.position + Vector3.up * liftForce * Time.fixedDeltaTime;
+            EngineRigidbody.MovePosition(newPosition);
         }
         
         /// <summary>
@@ -106,6 +113,10 @@ namespace Prototype.Engine
         void OnDrawGizmosSelected()
         {
             if (!showDebugInfo) return;
+            
+            // Afficher le raycast de détection du sol en jaune
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawRay(transform.position, Vector3.down * groundCheckDistance);
             
             // Afficher la direction de chute en rouge
             Gizmos.color = Color.red;
