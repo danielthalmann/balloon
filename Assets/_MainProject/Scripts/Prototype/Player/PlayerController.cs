@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Linq;
 
 namespace Prototype.Player
 {
@@ -17,15 +18,24 @@ namespace Prototype.Player
         // Parent retiré: le joueur n'est plus enfant de l'engin, donc pas de référence parent
         private float inputX;
         private bool isGrounded;
-
         private bool isJumping = false;
         private float jumpStartTime = 0f;
         private float jumpDuration = 0.3f; // Durée pendant laquelle on compense
-
+        private Prototype.Engine.EngineController currentEngine;
+        private Prototype.Engine.Actions.ResourceConsumingLiftAction resourceAction;
         void Awake()
         {
             rb = GetComponent<Rigidbody>();
-            // Plus de gestion de parent ici
+            // Trouver l'engin (tu peux aussi le mettre en SerializeField)
+            currentEngine = FindFirstObjectByType<Prototype.Engine.EngineController>();
+        }
+
+        void Update()
+        {
+            if (Keyboard.current.eKey.wasPressedThisFrame)
+            {
+                TryInteract();
+            }
         }
 
         void FixedUpdate()
@@ -95,6 +105,139 @@ namespace Prototype.Player
 
                 // Saut constant relatif à l'engin / plateforme
                 rb.linearVelocity = new Vector3(rb.linearVelocity.x, jumpForce + groundVelY, rb.linearVelocity.z);
+            }
+        }
+
+        // Nouveaux inputs pour les actions de l'engin
+        public void OnActionTimedLift(InputValue value)
+        {
+            if (value.isPressed && currentEngine != null && isGrounded)
+            {
+                var timedLift = new Prototype.Engine.Actions.TimedLiftAction(currentEngine, duration: 2f);
+                currentEngine.ExecuteAction(timedLift);
+            }
+        }
+
+        public void OnActionResourceLift(InputValue value)
+        {
+            if (currentEngine == null || !isGrounded) return;
+            
+            if (value.isPressed)
+            {
+                // Démarrer la remontée ressource
+                resourceAction = new Prototype.Engine.Actions.ResourceConsumingLiftAction(
+                    currentEngine, 
+                    maxResource: 100f, 
+                    resourceCostPerSecond: 20f
+                );
+                currentEngine.ExecuteAction(resourceAction);
+                resourceAction.SetLiftActive(true);
+            }
+            else
+            {
+                // Relâcher = arrêter
+                if (resourceAction != null)
+                {
+                    resourceAction.SetLiftActive(false);
+                }
+            }
+        }
+
+        public void OnActionSpam(InputValue value)
+        {
+            if (value.isPressed && currentEngine != null && isGrounded)
+            {
+                var spamAction = currentEngine.ActiveActions
+                    .FirstOrDefault(a => a is Prototype.Engine.Actions.SpamLiftAction) 
+                    as Prototype.Engine.Actions.SpamLiftAction;
+                
+                if (spamAction != null && spamAction.IsActive)
+                {
+                    spamAction.RegisterSpam();
+                }
+                else
+                {
+                    spamAction = new Prototype.Engine.Actions.SpamLiftAction(
+                        currentEngine, 
+                        boostDuration: 0.5f, 
+                        boostStrength: 1f
+                    );
+                    currentEngine.ExecuteAction(spamAction);
+                    spamAction.RegisterSpam();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Appelée automatiquement par Player Input quand on appuie sur Interact
+        /// </summary>
+        // public void OnInteract(InputValue value)
+        // {
+        //     Debug.Log($"OnInteract called! Value: {value.isPressed}");
+        //     if (value.isPressed)
+        //     {
+        //         // Lance un raycast pour détecter les objets interactifs
+        //         TryInteract();
+        //     }
+        // }
+
+        public void TryInteract()
+        {
+            Debug.Log("=== TryInteract CALLED ===");
+            
+            // Détermine la direction selon où le joueur regarde
+            Vector3 rayDirection;
+            if (model != null)
+            {
+                // Si tu as un modèle visuel, utilise sa direction
+                rayDirection = model.right;
+            }
+            else
+            {
+                // Sinon, utilise la vélocité
+                rayDirection = rb.linearVelocity.x > 0 ? Vector3.right : -Vector3.right;
+            }
+            
+            Ray ray = new Ray(transform.position, rayDirection);
+            
+            Debug.Log($">>> Raycast direction: {rayDirection}");
+            
+            if (Physics.Raycast(ray, out RaycastHit hit, 5f))
+            {
+                Debug.Log($">>> ✓ HIT: {hit.collider.gameObject.name}");
+                
+                Prototype.Interaction.IInteractable interactable = hit.collider.GetComponent<Prototype.Interaction.IInteractable>();
+                
+                if (interactable != null)
+                {
+                    Debug.Log($">>> ✓ Interaction trouvée!");
+                    interactable.OnClicked();
+                }
+            }
+        }
+
+        void OnDrawGizmos()
+        {
+            // Même logique pour le gizmo
+            Vector3 rayDirection;
+            if (model != null)
+            {
+                rayDirection = model.right;
+            }
+            else
+            {
+                rayDirection = transform.right;
+            }
+            
+            Ray ray = new Ray(transform.position, rayDirection);
+            
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(ray.origin, ray.direction * 5f);
+            
+            if (Physics.Raycast(ray, out RaycastHit hit, 5f))
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawSphere(hit.point, 0.15f);
             }
         }
     }

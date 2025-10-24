@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Prototype.Engine
 {
@@ -15,7 +16,11 @@ namespace Prototype.Engine
         
         [Header("Paramètres de remontée")]
         [SerializeField] private float liftForce = 5f; // Force de remontée
-        
+
+        [Header("Inertie")]
+        [SerializeField] private float inertiaMaxDuration = 3f; // Ajuste entre 1-3 secondes
+        [SerializeField] private float inertiaDuration = 0f; 
+        [SerializeField] private float inertiaForce = 0f; 
         [Header("Debug")]
         [SerializeField] private bool showDebugInfo = true;
         
@@ -23,16 +28,14 @@ namespace Prototype.Engine
         private Rigidbody EngineRigidbody;
         private bool isLifting = false;
         private float currentVerticalVelocity = 0f;
+        // Système d'actions
+        private List<EngineAction> _activeActions = new List<EngineAction>();
+        public List<EngineAction> ActiveActions => _activeActions;
         
         void Awake()
         {
             // Récupérer le Rigidbody de l'engin
             EngineRigidbody = GetComponent<Rigidbody>();
-            
-            // if (EngineRigidbody == null)
-            // {
-            //     Debug.LogError("EngineController nécessite un Rigidbody sur le GameObject !");
-            // }
         }
         
         void Start()
@@ -49,46 +52,116 @@ namespace Prototype.Engine
         
         void FixedUpdate()
         {
+            // Mettre à jour toutes les actions actives
+            UpdateActions();
             ApplyFalling();
+        }
+
+        /// <summary>
+        /// Mettre à jour chaque action active
+        /// </summary>
+        private void UpdateActions()
+        {
+            for (int i = _activeActions.Count - 1; i >= 0; i--)
+            {
+                var action = _activeActions[i];
+                
+                if (action.IsActive)
+                {
+                    action.Update();
+                    
+                    if (action.IsFinished())
+                    {
+                        action.Stop();
+                        _activeActions.RemoveAt(i);
+                    }
+                }
+            }
         }
         
         /// <summary>
-        /// Applique la force de chute permanente
+        /// Exécuter une nouvelle action
         /// </summary>
+        public void ExecuteAction(EngineAction action)
+        {
+            // Arrêter les actions existantes (optionnel: tu peux aussi les laisser s'accumuler)
+            StopAllActions();
+            
+            _activeActions.Add(action);
+            action.Start();
+        }
+
+        /// <summary>
+        /// Arrêter toutes les actions
+        /// </summary>
+        public void StopAllActions()
+        {
+            foreach (var action in _activeActions)
+            {
+                if (action.IsActive)
+                {
+                    action.Stop();
+                }
+            }
+            _activeActions.Clear();
+        }
+
         private void ApplyFalling()
         {
             if (EngineRigidbody == null) return;
             
-            // Vérifier si on touche le sol
             bool isGrounded = Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
             
-            if (!isLifting && !isGrounded)
+            // Gère la phase d'inertie
+            if (!isLifting && inertiaDuration > 0f)
             {
-                // Pour un Rigidbody Kinematic, utiliser MovePosition
+                // L'engine continue de monter mais avec une force décroissante
+                inertiaDuration -= Time.fixedDeltaTime;
+                
+                // Calcule la force d'inertie (décroît de liftForce à 0)
+                float inertiaProgress = inertiaDuration / inertiaMaxDuration;
+                inertiaForce = liftForce * inertiaProgress;
+                
+                if (inertiaForce > 0f && !isGrounded)
+                {
+                    Vector3 newPosition = EngineRigidbody.position + Vector3.up * inertiaForce * Time.fixedDeltaTime;
+                    EngineRigidbody.MovePosition(newPosition);
+                    currentVerticalVelocity = inertiaForce;
+                }
+                else if (inertiaDuration <= 0f)
+                {
+                    inertiaDuration = 0f;
+                    inertiaForce = 0f;
+                }
+            }
+            else if (!isLifting && !isGrounded && inertiaDuration <= 0f)
+            {
+                // Chute normale
                 Vector3 newPosition = EngineRigidbody.position + Vector3.down * fallSpeed * Time.fixedDeltaTime;
                 EngineRigidbody.MovePosition(newPosition);
-                
                 currentVerticalVelocity = -fallSpeed;
             }
             else if (isGrounded)
             {
+                // Au sol
                 currentVerticalVelocity = 0f;
+                inertiaDuration = 0f;
             }
-            else
+            else if (isLifting)
             {
+                // Remontée active
+                Vector3 newPosition = EngineRigidbody.position + Vector3.up * liftForce * Time.fixedDeltaTime;
+                EngineRigidbody.MovePosition(newPosition);
                 currentVerticalVelocity = liftForce;
             }
-        }
-        
+        }       
         /// <summary>
         /// Active la remontée de l'engin
         /// </summary>
         public void StartLifting()
         {
             if (EngineRigidbody == null) return;
-            
             isLifting = true;
-            
             // Pour un Rigidbody Kinematic, utiliser MovePosition
             Vector3 newPosition = EngineRigidbody.position + Vector3.up * liftForce * Time.fixedDeltaTime;
             EngineRigidbody.MovePosition(newPosition);
@@ -100,6 +173,7 @@ namespace Prototype.Engine
         public void StopLifting()
         {
             isLifting = false;
+            inertiaDuration = inertiaMaxDuration; // Démarre la phase d'inertie
         }
         
         /// <summary>
@@ -129,18 +203,5 @@ namespace Prototype.Engine
                 Gizmos.DrawRay(transform.position, Vector3.up * liftForce);
             }
         }
-        
-        // // Debug dans l'interface
-        // void OnGUI()
-        // {
-        //     if (!showDebugInfo) return;
-            
-        //     GUILayout.BeginArea(new Rect(10, 10, 300, 100));
-        //     GUILayout.Label($"Engin Volant - Debug");
-        //     GUILayout.Label($"Position Y: {transform.position.y:F2}");
-        //     GUILayout.Label($"Vitesse verticale: {currentVerticalVelocity:F2}");
-        //     GUILayout.Label($"En remontée: {(isLifting ? "OUI" : "NON")}");
-        //     GUILayout.EndArea();
-        // }
     }
 }
