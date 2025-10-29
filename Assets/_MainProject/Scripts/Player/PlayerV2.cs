@@ -20,6 +20,9 @@ public class PlayerV2 : MonoBehaviour
     [SerializeField]
     float gravity = .5f;
 
+    [SerializeField]
+    private CameraFollow cameraFollow;
+
     [Header("Debug")]
     [SerializeField]
     bool debug = false;
@@ -32,6 +35,9 @@ public class PlayerV2 : MonoBehaviour
 
     [SerializeField]
     bool isOnLadder = false;
+
+    [SerializeField]
+    bool isOnActivable = false;
     [SerializeField]
     private LayerMask ladderMask;
     [SerializeField]
@@ -39,11 +45,13 @@ public class PlayerV2 : MonoBehaviour
     [SerializeField]
     private LayerMask activableMask;
 
+
     private Bounds ladderBounds;
+    private Bounds ActivableBounds;
 
     bool onGround = false;
 
-        [SerializeField]
+    [SerializeField]
     private Vector3 rotationDirection;
 
     [SerializeField]
@@ -52,18 +60,22 @@ public class PlayerV2 : MonoBehaviour
     private PlayerInput playerInput;
     private InputAction moveAction;
     private InputAction interactAction;
-    private PlayerEngineInteraction playerInteraction;
+    private InputAction jumpAction;
+    private InputAction zoomAction;
+    private Activable activable;
+
+    private float rotateAngle = 0;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        playerInteraction = GetComponent<PlayerEngineInteraction>();
         playerInput = GetComponent<PlayerInput>();
 
         moveAction = playerInput.actions["Move"];
         interactAction = playerInput.actions["Interact"];
-
+        jumpAction = playerInput.actions["Jump"];
+        zoomAction = playerInput.actions["Zoom"];
     }
 
     Vector3 horizontalDirection = new Vector3();
@@ -74,45 +86,53 @@ public class PlayerV2 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (zoomAction.WasPressedThisFrame())
+        {
+            cameraFollow.macro = !cameraFollow.macro;
+        }
+
         Vector3 verticanDirection = new Vector3();
 
         Vector3 moveInput = moveAction.ReadValue<Vector2>();
         horizontalDirection.x = moveInput.x;
-        verticanDirection.y = moveInput.y;
+
+        if (isOnLadder)
+        {
+            verticanDirection.y = moveInput.y;
+        }
+        else { 
+            if (jumpAction.IsPressed())
+            {
+                verticanDirection.y = 1;
+            }
+        }
+            
 
         if (horizontalDirection.x != 0)
         {
             rotationDirection = horizontalDirection;
         }
 
-        if(interactAction.WasPressedThisFrame())
+        if (interactAction.WasPressedThisFrame())
         {
-            if(playerInteraction)
-                playerInteraction.TriggerInteraction();
+            if (isOnActivable && activable != null)
+            {
+                activable.Release();
+            }
         }
-
-        /*
-        if (Input.GetKey(KeyCode.LeftArrow))
+                    
+            
+        if (interactAction.IsPressed())
         {
-            horizontalDirection.x = -1.0f;
-            rotationDirection = horizontalDirection;
+            if (isOnActivable && activable != null)
+            {
+                activable.Activate();
+            }
         }
-        if (Input.GetKey(KeyCode.RightArrow))
-        {
-            horizontalDirection.x = 1.0f;
-            rotationDirection = horizontalDirection;
-        }
-        if (Input.GetKey(KeyCode.UpArrow))
-        {
-            verticanDirection.y = 1.0f;
-        }
-        if (Input.GetKey(KeyCode.DownArrow))
-        {
-            verticanDirection.y = -1.0f;
-        }
-        */
 
         DetectLadder();
+
+        DetectActivable();
 
         DetectGround();
 
@@ -120,17 +140,30 @@ public class PlayerV2 : MonoBehaviour
 
 
         // mise à jour de la rotation du personnage
-        transform.right = Vector3.Slerp(transform.right, rotationDirection, rotateSpeed * Time.deltaTime);
+        //transform.right = Vector3.Slerp(transform.right, rotationDirection, rotateSpeed * Time.deltaTime);
+        if (rotationDirection.x > 0)
+        {
+            rotateAngle = Mathf.Lerp(rotateAngle, 0, rotateSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.AngleAxis(rotateAngle, Vector3.up);
+        } else
+        {
+            rotateAngle = Mathf.Lerp(rotateAngle, 180, rotateSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.AngleAxis(rotateAngle, Vector3.up);
 
-        moveDirection = (horizontalDirection + verticanDirection).normalized;
+        }
+
 
         float moveDistance = moveSpeed * Time.deltaTime;
         float jumpDistance = jumpForce * Time.deltaTime;
+
         if (isOnLadder)
         {
+            vertivalSpeed = 0;
             jumpDistance = moveDistance;
+
         } else
         {
+            vertivalSpeed += (vertivalSpeed + gravity) * Time.deltaTime;
             if(onGround)
             {
                 if (verticanDirection.y < 0)
@@ -143,19 +176,7 @@ public class PlayerV2 : MonoBehaviour
         // prend tous les masques sauf ladderMask, groundMask et activableMask
         LayerMask lm = ~(ladderMask | groundMask | activableMask);
 
-
         bool touch = Physics.CapsuleCast(transform.position, transform.position + Vector3.up * bodyHeight, bodyRadius, rotationDirection, out hitInfoFront, moveDistance, lm);
-        /*
-        if (touch)
-        {
-
-            if (hitInfoFront.collider.isTrigger)
-            {
-                touch = false;
-            }
-
-        }
-        */
 
         transform.position += (horizontalDirection.normalized * moveDistance * (touch ? 0 : 1)) + (verticanDirection.normalized * jumpDistance);
         
@@ -256,14 +277,33 @@ public class PlayerV2 : MonoBehaviour
 
 
         }
+    }
 
-        if (!isOnLadder)
+    private void DetectActivable()
+    {
+
+        if (isOnActivable)
         {
-            vertivalSpeed += (vertivalSpeed + gravity) * Time.deltaTime;
+            if (!ActivableBounds.Contains(transform.position))
+            {
+                isOnActivable = false;
+            }
+
         }
         else
         {
-            vertivalSpeed = 0;
+
+            RaycastHit hitInfo;
+
+            Vector3 start = transform.position + (transform.right * -.5f);
+
+            if (Physics.Raycast(start, transform.right, out hitInfo, .5f, activableMask))
+            {
+                ActivableBounds = hitInfo.collider.bounds;
+                activable = hitInfo.collider.GetComponent<Activable>();
+                isOnActivable = true;
+            }
+
         }
 
     }

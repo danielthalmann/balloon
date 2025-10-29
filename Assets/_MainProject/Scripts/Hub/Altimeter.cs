@@ -2,6 +2,13 @@ using UnityEngine;
 
 public class Altimeter : MonoBehaviour
 {
+    public enum Orientation
+    {
+        Horizontal,
+        Vertival,
+        Depth
+    }
+
     [System.Serializable]
     public struct MinMax
     {
@@ -9,6 +16,8 @@ public class Altimeter : MonoBehaviour
         public float max;
     };
 
+    [SerializeField]
+    Orientation orientation = Orientation.Vertival;
 
     [SerializeField]
     GameObject cursor;
@@ -33,7 +42,19 @@ public class Altimeter : MonoBehaviour
     void Start()
     {
         diff = minMax.max - minMax.min;
-        cursor.transform.localPosition = new Vector3(cursor.transform.localPosition.x, minMax.min + (diff * value), cursor.transform.localPosition.z);
+        if (orientation == Orientation.Vertival)
+        {
+            cursor.transform.localPosition = new Vector3(cursor.transform.localPosition.x, minMax.min + (diff * value), cursor.transform.localPosition.z);
+        }
+        if (orientation == Orientation.Horizontal)
+        {
+            cursor.transform.localPosition = new Vector3(minMax.min + (diff * value), cursor.transform.localPosition.y, cursor.transform.localPosition.z);
+        }
+        if (orientation == Orientation.Depth)
+        {
+            cursor.transform.localPosition = new Vector3(cursor.transform.localPosition.x, cursor.transform.localPosition.y, minMax.min + (diff * value));
+        }
+
     }
 
   
@@ -41,8 +62,22 @@ public class Altimeter : MonoBehaviour
     void Update()
     {
         diff = minMax.max - minMax.min;
-        cursor.transform.localPosition = Vector3.Lerp(cursor.transform.localPosition, 
-            new Vector3(cursor.transform.localPosition.x, minMax.min + (diff * value), cursor.transform.localPosition.z), 
-            Time.deltaTime * speed);
+        Vector3 b = new Vector3();
+
+        if (orientation == Orientation.Vertival)
+        {
+            b = new Vector3(cursor.transform.localPosition.x, minMax.min + (diff * value), cursor.transform.localPosition.z);
+        }
+        if (orientation == Orientation.Horizontal)
+        {
+            b = new Vector3(minMax.min + (diff * value), cursor.transform.localPosition.y, cursor.transform.localPosition.z);
+        }
+        if (orientation == Orientation.Depth)
+        {
+            b = new Vector3(cursor.transform.localPosition.x, cursor.transform.localPosition.y, minMax.min + (diff * value));
+        }
+
+        cursor.transform.localPosition = Vector3.Lerp(cursor.transform.localPosition, b, Time.deltaTime * speed);
+        
     }
 }

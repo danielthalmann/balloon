@@ -32,7 +32,7 @@ public class EngineUpward : MonoBehaviour
     void Update()
     {
 
-        altimeter.value = (current - min) / (max - min);
+        altimeter.value = GetValue();
 
         nextcurrent = nextcurrent + ((upwardVector - downwardVector) * Time.deltaTime);
 
@@ -54,5 +54,15 @@ public class EngineUpward : MonoBehaviour
     public void addForce(float force)
     {
         upwardVector += force;
+    }
+
+    public void SetFallForce(float force)
+    {
+        downwardVector = force;
+    }
+
+    public float GetValue()
+    {
+        return (current - min) / (max - min);
     }
 }

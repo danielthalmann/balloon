@@ -6,14 +6,15 @@ public class Activable : MonoBehaviour
     [SerializeField]
     float activationDuration = 4.0f;
     [SerializeField]
-    float ReactivationDuration = 6.0f;
+    float reactivationDuration = 6.0f;
     [SerializeField]
     float effectDuration = 10.0f;
     [SerializeField]
     float effectStrength = 5.0f;
 
 
-    float activatedTimer = 0;
+    public float activationDurationTimer = 0;
+    public float effectDurationTimer = 0;
 
     public bool activated = false;
     bool activatedStarted = false;
@@ -32,24 +33,41 @@ public class Activable : MonoBehaviour
     void Update()
     {
 
-        Activation();
+        TreatActivation();
     }
 
+    public void Activate()
+    {
+        if (!activated || effectDurationTimer > reactivationDuration)
+        {
+            activationDurationTimer += Time.deltaTime;
+            if (activationDurationTimer > activationDuration)
+            {
+                activated = true;
+                effectDurationTimer = 0;
+            }
+        }
+    }
 
-    void Activation()
+    public void Release()
+    {
+        activationDurationTimer = 0;
+    }
+
+    void TreatActivation()
     {
         if (activated)
         {
-            activatedTimer += Time.deltaTime;
+            effectDurationTimer += Time.deltaTime;
 
             if (!activatedStarted)
             {
                 activatedStarted = true;
                 engine.addForce(effectStrength);
-                activatedTimer = 0;
+                activationDurationTimer = 0;
             }
 
-            if (activatedTimer > effectDuration)
+            if (effectDurationTimer > effectDuration)
             {
                 activated = false;
             }

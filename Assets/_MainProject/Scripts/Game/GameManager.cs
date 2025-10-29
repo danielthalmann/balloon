@@ -1,0 +1,53 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class GameManager : StateMachine.StateMachine
+{
+    public PlayerInput playerInput;
+
+    public PlayerV2 player;
+
+    public GameObject ready;
+
+    public EngineUpward engineUpward;
+
+    public SceneLoaderManager sceneLoader;
+
+    // Init state machine
+    public override void Init()
+    {
+        playerInput = GetFirstObjectByType<PlayerInput>();
+        if (engineUpward == null)
+            engineUpward = GetFirstObjectByType<EngineUpward>();
+        if (engineUpward == null)
+            Debug.LogError("the engineUpward cannot be found in scene");
+        if (sceneLoader == null)
+            sceneLoader = GetFirstObjectByType<SceneLoaderManager>();
+
+        // Example 
+        AddState("Start", new GameStartState(), true);
+        AddState("NormalFly", new GameNormalFlyState());
+        AddState("Lose", new GameLoseState());
+        AddState("Win", new GameWinState());
+
+    }
+
+    /// <summary>
+    /// retourne le premier objet selon le type
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public T GetFirstObjectByType<T>()
+    {
+        System.Type typeDeT = typeof(T);
+
+        Object[] objs = Object.FindObjectsByType(typeDeT, FindObjectsSortMode.InstanceID);
+        if (objs.Length > 0)
+        {
+            return (T)(object)objs[0];
+        }
+        return default(T);
+    }
+
+
+}

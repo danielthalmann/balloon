@@ -11,9 +11,6 @@ public class CameraFollow : MonoBehaviour
 
     public bool macro;
 
-    private InputAction zoomAction;
-
-
 
     /// <summary>
     /// Start est appelé avant la première mise à jour d'image
@@ -26,7 +23,6 @@ public class CameraFollow : MonoBehaviour
         {
             currentCamera.transform.position = target.position + offset; 
         }
-        zoomAction = GetComponent<PlayerInput>().actions["Zoom"];
     }
 
 
@@ -44,11 +40,6 @@ public class CameraFollow : MonoBehaviour
         // adouci le déplacement de la caméra avec Lerp
         Vector3 SmoothPosition = Vector3.Lerp(currentCamera.transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
         currentCamera.transform.position = SmoothPosition;
-
-        if (zoomAction.WasPressedThisFrame())
-        {
-            macro = !macro;
-        }
 
     }
 }
