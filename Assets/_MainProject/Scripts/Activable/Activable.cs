@@ -17,29 +17,64 @@ public class Activable : MonoBehaviour
     public float effectDurationTimer = 0;
 
     public bool activated = false;
+
+    public bool hover = false;
+
     bool activatedStarted = false;
+
+    [SerializeField]
+    RotateLinear rotateLinear;
 
     [SerializeField]
     EngineUpward engine;
 
 
+    [SerializeField]
+    ProgressBar progressBar;
+
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-                
+        progressBar.min = 0f;
+        progressBar.max = activationDuration;
+        progressBar.SetValue(activationDurationTimer);
     }
+
 
     // Update is called once per frame
     void Update()
     {
 
         TreatActivation();
+
+        if (hover)
+        {
+            if (!progressBar.gameObject.activeSelf)
+            {
+                progressBar.gameObject.SetActive(true);
+            }
+        } else
+        {
+            if (!activated && progressBar.gameObject.activeSelf)
+            {
+                progressBar.gameObject.SetActive(false);
+            }
+        }
     }
 
     public void Activate()
     {
         if (!activated || effectDurationTimer > reactivationDuration)
         {
+
+            progressBar.min = 0f;
+            progressBar.max = activationDuration;
+            progressBar.SetValue(activationDurationTimer);
+
+            if (rotateLinear != null)
+                rotateLinear.value = progressBar.slideValue;
+
             activationDurationTimer += Time.deltaTime;
             if (activationDurationTimer > activationDuration)
             {
@@ -51,7 +86,16 @@ public class Activable : MonoBehaviour
 
     public void Release()
     {
-        activationDurationTimer = 0;
+        if (!activated || effectDurationTimer > reactivationDuration)
+        {
+            activationDurationTimer = 0;
+            if (!activated)
+            {
+                progressBar.SetValue(activationDurationTimer);
+            }
+            if (rotateLinear != null)
+                rotateLinear.value = progressBar.slideValue;
+        }
     }
 
     void TreatActivation()
@@ -71,6 +115,13 @@ public class Activable : MonoBehaviour
             {
                 activated = false;
             }
+            progressBar.min = 0f;
+            progressBar.max = effectDuration;
+            progressBar.SetValue(effectDuration - effectDurationTimer);
+            if (rotateLinear != null)
+                rotateLinear.value = progressBar.slideValue;
+
+
         }
         else
         {

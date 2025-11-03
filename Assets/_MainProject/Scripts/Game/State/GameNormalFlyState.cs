@@ -14,7 +14,7 @@ public class GameNormalFlyState : State
     public override void Enter()
     {
         ((GameManager)stateMachine).player.enabled = true;
-        ((GameManager)stateMachine).engineUpward.SetFallForce(.5f);
+        ((GameManager)stateMachine).engineUpward.SetFallForce(((GameManager)stateMachine).fallForce);
     }
 
     public override void Leave()

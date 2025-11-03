@@ -66,6 +66,8 @@ public class PlayerV2 : MonoBehaviour
 
     private float rotateAngle = 0;
 
+    private float halfBodyRadius = 1f;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -76,6 +78,8 @@ public class PlayerV2 : MonoBehaviour
         interactAction = playerInput.actions["Interact"];
         jumpAction = playerInput.actions["Jump"];
         zoomAction = playerInput.actions["Zoom"];
+
+        halfBodyRadius = bodyRadius / 2;
     }
 
     Vector3 horizontalDirection = new Vector3();
@@ -112,21 +116,18 @@ public class PlayerV2 : MonoBehaviour
         {
             rotationDirection = horizontalDirection;
         }
-
-        if (interactAction.WasPressedThisFrame())
-        {
-            if (isOnActivable && activable != null)
-            {
-                activable.Release();
-            }
-        }
-                    
             
         if (interactAction.IsPressed())
         {
             if (isOnActivable && activable != null)
             {
                 activable.Activate();
+            }
+        } else
+        {
+            if (activable != null)
+            {
+                activable.Release();
             }
         }
 
@@ -220,11 +221,11 @@ public class PlayerV2 : MonoBehaviour
             if (debugFrontCast)
             {
                 Gizmos.color = Color.red;
-                Gizmos.DrawRay(transform.position, rotationDirection * .5f);
+                Gizmos.DrawRay(transform.position, rotationDirection * halfBodyRadius);
 
-                Vector3 start = transform.position + (transform.right * -.5f);
+                Vector3 start = transform.position + (transform.right * (-halfBodyRadius));
                 Gizmos.color = Color.blue;
-                Gizmos.DrawRay(start + (transform.up * bodyHeight), transform.right * .5f);
+                Gizmos.DrawRay(start + (transform.up * bodyHeight), transform.right * halfBodyRadius);
 
 
 
@@ -262,14 +263,15 @@ public class PlayerV2 : MonoBehaviour
                 isOnLadder = false;
             }
 
-        } else
+        }
+        if (!isOnLadder)
         {
             
             RaycastHit hitInfo;
 
-            Vector3 start = transform.position + (transform.right * -.5f);
+            Vector3 start = transform.position + (transform.right * (-halfBodyRadius));
 
-            if (Physics.Raycast(start, transform.right, out hitInfo, .5f, ladderMask))
+            if (Physics.Raycast(start, transform.right, out hitInfo, halfBodyRadius, ladderMask))
             {
                 ladderBounds = hitInfo.collider.bounds;
                 isOnLadder = true;
@@ -286,25 +288,32 @@ public class PlayerV2 : MonoBehaviour
         {
             if (!ActivableBounds.Contains(transform.position))
             {
+                Debug.Log(transform.position);
                 isOnActivable = false;
             }
 
         }
-        else
+        if (!isOnActivable)
         {
 
             RaycastHit hitInfo;
 
-            Vector3 start = transform.position + (transform.right * -.5f);
+            Vector3 start = transform.position + (transform.right * (-halfBodyRadius));
 
-            if (Physics.Raycast(start, transform.right, out hitInfo, .5f, activableMask))
+            if (Physics.Raycast(start, transform.right, out hitInfo, halfBodyRadius, activableMask))
             {
                 ActivableBounds = hitInfo.collider.bounds;
+                ActivableBounds.Expand(.01f);
                 activable = hitInfo.collider.GetComponent<Activable>();
                 isOnActivable = true;
             }
 
         }
+        if (activable != null)
+        {
+            activable.hover = isOnActivable;
+        }
+
 
     }
 

@@ -7,11 +7,11 @@ public class GameStartState : State
 
     public override void Start()
     {
-        
     }
 
     public override void Enter()
     {
+        ((GameManager)stateMachine).ready.SetActive(true);
         ((GameManager)stateMachine).player.enabled = false;
     }
 

@@ -59,19 +59,20 @@ public class SceneLoaderManager : MonoBehaviour
 
         if(fadeImage == null)
         {
-            Canvas canvas = FindAnyObjectByType<Canvas>();
-            if (!canvas)
-            {
-                //Debug.LogWarning("Fail load cursor. The scene contain nothing canvas");
+            Canvas canvas;
+            //Canvas canvas = FindAnyObjectByType<Canvas>();
+            //if (!canvas)
+            //{
+            //Debug.LogWarning("Fail load cursor. The scene contain nothing canvas");
                 GameObject gameObjectCanvas = new GameObject();
-                gameObjectCanvas.AddComponent<Canvas>();
+                canvas = gameObjectCanvas.AddComponent<Canvas>();
                 gameObjectCanvas.AddComponent<CanvasScaler>();
                 gameObjectCanvas.name = "Canvas";
-                canvas = FindAnyObjectByType<Canvas>();
+
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 canvas.worldCamera = Camera.main;
                 canvas.sortingOrder = 100;
-            }
+            //}
             GameObject gameObject = new GameObject();
 
             fadeImage = gameObject.AddComponent<Image>();

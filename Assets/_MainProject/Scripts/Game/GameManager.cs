@@ -7,11 +7,14 @@ public class GameManager : StateMachine.StateMachine
 
     public PlayerV2 player;
 
+    [Header("UI")]
     public GameObject ready;
 
     public EngineUpward engineUpward;
 
     public SceneLoaderManager sceneLoader;
+
+    public float fallForce = 0.5f;
 
     // Init state machine
     public override void Init()
