@@ -20,12 +20,18 @@ public class EngineUpward : MonoBehaviour
     [SerializeField]
     Altimeter altimeter;
 
+    GameManager game;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         transform.position = new Vector3(transform.position.x, current, transform.position.z);
+        game = UnityEngine.Object.FindAnyObjectByType<GameManager>();
+        if (game == null)
+        {
+            Debug.LogError("GameManager not present");
+        }
     }
 
     // Update is called once per frame
@@ -34,7 +40,7 @@ public class EngineUpward : MonoBehaviour
 
         altimeter.value = GetValue();
 
-        nextcurrent = nextcurrent + ((upwardVector - downwardVector) * Time.deltaTime);
+        nextcurrent = nextcurrent + ((GetActivableForce() - downwardVector) * Time.deltaTime);
 
         if (nextcurrent > max)
         {
@@ -51,9 +57,10 @@ public class EngineUpward : MonoBehaviour
 
     }
 
-    public void addForce(float force)
+
+    public float GetActivableForce()
     {
-        upwardVector += force;
+        return game.GetActivableForce();
     }
 
     public void SetFallForce(float force)

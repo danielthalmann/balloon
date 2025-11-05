@@ -1,12 +1,10 @@
 using System;
 using UnityEngine;
 
-public class Activable : MonoBehaviour
+public class Activable : MonoBehaviour, ActivableContract
 {
     [SerializeField]
     float activationDuration = 4.0f;
-    [SerializeField]
-    float reactivationDuration = 6.0f;
     [SerializeField]
     float effectDuration = 10.0f;
     [SerializeField]
@@ -26,19 +24,24 @@ public class Activable : MonoBehaviour
     RotateLinear rotateLinear;
 
     [SerializeField]
-    EngineUpward engine;
-
-
-    [SerializeField]
-    ProgressBar progressBar;
+    ProgressBarAbstract progressBar;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        progressBar.min = 0f;
-        progressBar.max = activationDuration;
+        progressBar.SetMin(0f);
+        progressBar.SetMax(activationDuration);
         progressBar.SetValue(activationDurationTimer);
+
+        GameManager game = UnityEngine.Object.FindAnyObjectByType<GameManager>();
+        if (game == null)
+        {
+            Debug.LogError("GameManager not present");
+        } else
+        {
+            game.RegisterActivable(this);
+        }
     }
 
 
@@ -50,35 +53,36 @@ public class Activable : MonoBehaviour
 
         if (hover)
         {
-            if (!progressBar.gameObject.activeSelf)
+            if (!progressBar.IsActive())
             {
-                progressBar.gameObject.SetActive(true);
+                progressBar.SetActive(true);
             }
         } else
         {
-            if (!activated && progressBar.gameObject.activeSelf)
+            if (!activated && progressBar.IsActive())
             {
-                progressBar.gameObject.SetActive(false);
+                progressBar.SetActive(false);
             }
         }
     }
 
     public void Activate()
     {
-        if (!activated || effectDurationTimer > reactivationDuration)
+        if (!activated)
         {
 
-            progressBar.min = 0f;
-            progressBar.max = activationDuration;
+            progressBar.SetMin(0f);
+            progressBar.SetMax(activationDuration);
             progressBar.SetValue(activationDurationTimer);
 
             if (rotateLinear != null)
-                rotateLinear.value = progressBar.slideValue;
+                rotateLinear.value = progressBar.GetNormalValue();
 
             activationDurationTimer += Time.deltaTime;
             if (activationDurationTimer > activationDuration)
             {
                 activated = true;
+                activationDurationTimer = 0;
                 effectDurationTimer = 0;
             }
         }
@@ -86,7 +90,7 @@ public class Activable : MonoBehaviour
 
     public void Release()
     {
-        if (!activated || effectDurationTimer > reactivationDuration)
+        if (!activated)
         {
             activationDurationTimer = 0;
             if (!activated)
@@ -94,7 +98,7 @@ public class Activable : MonoBehaviour
                 progressBar.SetValue(activationDurationTimer);
             }
             if (rotateLinear != null)
-                rotateLinear.value = progressBar.slideValue;
+                rotateLinear.value = progressBar.GetNormalValue();
         }
     }
 
@@ -104,32 +108,30 @@ public class Activable : MonoBehaviour
         {
             effectDurationTimer += Time.deltaTime;
 
-            if (!activatedStarted)
-            {
-                activatedStarted = true;
-                engine.addForce(effectStrength);
-                activationDurationTimer = 0;
-            }
-
             if (effectDurationTimer > effectDuration)
             {
                 activated = false;
             }
-            progressBar.min = 0f;
-            progressBar.max = effectDuration;
+            progressBar.SetMin(0f);
+            progressBar.SetMax(effectDuration);
             progressBar.SetValue(effectDuration - effectDurationTimer);
             if (rotateLinear != null)
-                rotateLinear.value = progressBar.slideValue;
-
+                rotateLinear.value = progressBar.GetNormalValue();
 
         }
-        else
+    }
+
+    public float GetForce()
+    {
+        if (activated)
         {
-            if (activatedStarted)
-            {
-                activatedStarted = false;
-                engine.addForce(-effectStrength);
-            }
+            return effectStrength;
         }
+        return 0;
+    }
+
+    public bool IsActivated()
+    {
+        return activated;
     }
 }

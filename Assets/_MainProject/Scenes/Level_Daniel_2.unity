@@ -17185,6 +17185,10 @@ PrefabInstance:
       value: Activable (2)
       objectReference: {fileID: 0}
     - target: {fileID: 4093749456165837125, guid: 5047de8951bf9bc42b89dbc43727fddd, type: 3}
+      propertyPath: effectStrength
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 4093749456165837125, guid: 5047de8951bf9bc42b89dbc43727fddd, type: 3}
       propertyPath: activationDuration
       value: 2
       objectReference: {fileID: 0}
@@ -20071,6 +20075,10 @@ PrefabInstance:
       propertyPath: engine
       value: 
       objectReference: {fileID: 1801675734}
+    - target: {fileID: 4093749456165837125, guid: 5047de8951bf9bc42b89dbc43727fddd, type: 3}
+      propertyPath: effectStrength
+      value: 0.7
+      objectReference: {fileID: 0}
     - target: {fileID: 4603384309536330318, guid: 5047de8951bf9bc42b89dbc43727fddd, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.111

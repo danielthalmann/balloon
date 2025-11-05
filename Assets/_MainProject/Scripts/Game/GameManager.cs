@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public class GameManager : StateMachine.StateMachine
 {
@@ -15,6 +16,9 @@ public class GameManager : StateMachine.StateMachine
     public SceneLoaderManager sceneLoader;
 
     public float fallForce = 0.5f;
+
+    private List<ActivableContract> activables = new List<ActivableContract>();
+
 
     // Init state machine
     public override void Init()
@@ -51,6 +55,25 @@ public class GameManager : StateMachine.StateMachine
         }
         return default(T);
     }
+
+
+    public void RegisterActivable(ActivableContract activable)
+    {
+        activables.Add(activable);
+    }
+
+    public float GetActivableForce()
+    {
+        float force = 0;
+
+        foreach(Activable activable in activables)
+        {
+            force += activable.GetForce();
+        }
+        Debug.Log("Force : " + force);
+        return force;
+    }
+
 
 
 }
