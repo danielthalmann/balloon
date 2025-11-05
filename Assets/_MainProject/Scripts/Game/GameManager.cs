@@ -70,7 +70,6 @@ public class GameManager : StateMachine.StateMachine
         {
             force += activable.GetForce();
         }
-        Debug.Log("Force : " + force);
         return force;
     }
 

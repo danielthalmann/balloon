@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Prototype.Player;
+using System.Collections.Generic;
 
 public class PlayerV2 : MonoBehaviour
 {
@@ -9,53 +9,32 @@ public class PlayerV2 : MonoBehaviour
     [SerializeField]
     private float rotateSpeed = 12f;
     [SerializeField]
-    float bodyHeight = .5f;
-    [SerializeField]
-    float bodyRadius = 1f;
-    [SerializeField]
     private float jumpForce = 5f;
-
-    float vertivalSpeed = 0;
-
-    [SerializeField]
-    float gravity = .5f;
-
     [SerializeField]
     private CameraFollow cameraFollow;
 
-    [Header("Debug")]
     [SerializeField]
-    bool debug = false;
-    [SerializeField]
-    bool debugCapsuleCast = false;
-    [SerializeField]
-    bool debugGroundCast = false;
-    [SerializeField]
-    bool debugFrontCast = false;
-
-    [SerializeField]
-    bool isOnLadder = false;
-
-    [SerializeField]
-    bool isOnActivable = false;
+    private float detectDistance = 1f;
     [SerializeField]
     private LayerMask ladderMask;
     [SerializeField]
-    private LayerMask groundMask;
-    [SerializeField]
     private LayerMask activableMask;
-
-
-    private Bounds ladderBounds;
-    private Bounds ActivableBounds;
-
-    bool onGround = false;
-
     [SerializeField]
-    private Vector3 rotationDirection;
-
+    private string groundTag = "Ground";
     [SerializeField]
     private Animator animator;
+
+
+    [Header("Debug")]
+
+    [SerializeField]
+    bool debug = false;
+    [SerializeField]
+    bool isOnLadder = false;
+    [SerializeField]
+    bool isOnActivable = false;
+    [SerializeField]
+    private Vector3 rotationDirection;
 
     private PlayerInput playerInput;
     private InputAction moveAction;
@@ -66,8 +45,15 @@ public class PlayerV2 : MonoBehaviour
 
     private float rotateAngle = 0;
 
-    private float halfBodyRadius = 1f;
+    private Rigidbody rb;
 
+    float horizontalDirection;
+    float verticanDirection;
+
+    List<Collider> groundColliders = new List<Collider>();
+
+    Collider playerCollider;
+    Vector3 moveInput;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -79,12 +65,30 @@ public class PlayerV2 : MonoBehaviour
         jumpAction = playerInput.actions["Jump"];
         zoomAction = playerInput.actions["Zoom"];
 
-        halfBodyRadius = bodyRadius / 2;
+        rb = GetComponent<Rigidbody>();
+        playerCollider = GetComponent<Collider>();
+        
+        GameObject[] grounds = GameObject.FindGameObjectsWithTag(groundTag);
+        foreach (GameObject objet in grounds)
+        {
+            Collider collider = objet.GetComponent<Collider>();
+            if (collider)
+            {
+                groundColliders.Add(collider);
+            }
+        }
+
     }
 
-    Vector3 horizontalDirection = new Vector3();
-    Vector3 moveDirection;
-    RaycastHit hitInfoFront;
+    private void FixedUpdate()
+    {
+        DetectLadder(moveInput.y);
+
+        DetectActivable();
+
+        ApplyAnimation();
+
+    }
 
 
     // Update is called once per frame
@@ -95,31 +99,17 @@ public class PlayerV2 : MonoBehaviour
             cameraFollow.macro = !cameraFollow.macro;
         }
 
-        Vector3 verticanDirection = new Vector3();
+        moveInput = moveAction.ReadValue<Vector2>();
+        horizontalDirection = moveInput.x;
 
-        Vector3 moveInput = moveAction.ReadValue<Vector2>();
-        horizontalDirection.x = moveInput.x;
-
-        if (isOnLadder)
+        if (horizontalDirection != 0)
         {
-            verticanDirection.y = moveInput.y;
-        }
-        else { 
-            if (jumpAction.IsPressed())
-            {
-                verticanDirection.y = 1;
-            }
-        }
-            
-
-        if (horizontalDirection.x != 0)
-        {
-            rotationDirection = horizontalDirection;
+            rotationDirection = new Vector3(horizontalDirection, 0, 0);
         }
             
         if (interactAction.IsPressed())
         {
-            if (isOnActivable && activable != null)
+            if (activable != null)
             {
                 activable.Activate();
             }
@@ -130,14 +120,6 @@ public class PlayerV2 : MonoBehaviour
                 activable.Release();
             }
         }
-
-        DetectLadder();
-
-        DetectActivable();
-
-        DetectGround();
-
-        ApplyAnimation();
 
 
         // mise à jour de la rotation du personnage
@@ -153,42 +135,33 @@ public class PlayerV2 : MonoBehaviour
 
         }
 
-
-        float moveDistance = moveSpeed * Time.deltaTime;
-        float jumpDistance = jumpForce * Time.deltaTime;
-
         if (isOnLadder)
         {
-            vertivalSpeed = 0;
-            jumpDistance = moveDistance;
-
-        } else
+            rb.useGravity = false;
+            verticanDirection = moveInput.y * moveSpeed;
+        }
+        else
         {
-            vertivalSpeed += (vertivalSpeed + gravity) * Time.deltaTime;
-            if(onGround)
+            rb.useGravity = true;
+
+            if (jumpAction.WasPressedThisFrame())
             {
-                if (verticanDirection.y < 0)
-                { 
-                    verticanDirection.y = 0;
-                }
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                verticanDirection = rb.linearVelocity.y;
+            }
+            else
+            {
+                verticanDirection = rb.linearVelocity.y;
             }
         }
 
-        // prend tous les masques sauf ladderMask, groundMask et activableMask
-        LayerMask lm = ~(ladderMask | groundMask | activableMask);
-
-        bool touch = Physics.CapsuleCast(transform.position, transform.position + Vector3.up * bodyHeight, bodyRadius, rotationDirection, out hitInfoFront, moveDistance, lm);
-
-        transform.position += (horizontalDirection.normalized * moveDistance * (touch ? 0 : 1)) + (verticanDirection.normalized * jumpDistance);
-        
-        transform.position += (-transform.up * vertivalSpeed);
-       
+        rb.linearVelocity = new Vector3(horizontalDirection * moveSpeed, verticanDirection, rb.linearVelocity.z);
 
     }
 
     private void ApplyAnimation()
     {
-        if (horizontalDirection != Vector3.zero)
+        if (horizontalDirection != 0)
         {
             animator.SetBool("isWalking", true);
         }
@@ -203,117 +176,72 @@ public class PlayerV2 : MonoBehaviour
 
         if(debug)
         {
-            if (debugCapsuleCast)
-            {
-                Gizmos.DrawSphere(transform.position, bodyRadius);
-                Gizmos.DrawSphere(transform.position + Vector3.up * bodyHeight, bodyRadius);
-
-            }
-            if (debugGroundCast)
-            {
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawRay(transform.position + (transform.up * -bodyRadius), transform.up * bodyRadius);
-
-                Gizmos.color = Color.green;
-                Gizmos.DrawSphere(hitInfoGround.point, .01f);
-            }
-
-            if (debugFrontCast)
-            {
-                Gizmos.color = Color.red;
-                Gizmos.DrawRay(transform.position, rotationDirection * halfBodyRadius);
-
-                Vector3 start = transform.position + (transform.right * (-halfBodyRadius));
-                Gizmos.color = Color.blue;
-                Gizmos.DrawRay(start + (transform.up * bodyHeight), transform.right * halfBodyRadius);
-
-
-
-                Gizmos.color = Color.green;
-                Gizmos.DrawSphere(hitInfoFront.point, .01f);
-            }
 
             Gizmos.color = Color.red;
+            Gizmos.DrawRay(transform.position, transform.right * detectDistance);
 
-            Gizmos.DrawRay(transform.position + (transform.up * -bodyRadius), transform.up * -vertivalSpeed);
         }
 
     }
+  
+    RaycastHit hitInfoLadder;
 
-    RaycastHit hitInfoGround;
-
-    private void DetectGround()
+    private void DetectLadder(float vertical)
     {
-
-        onGround = Physics.Raycast(transform.position, -transform.up, out hitInfoGround, vertivalSpeed + bodyRadius, groundMask);
-        if (onGround && !isOnLadder)
+        
+        if ((Physics.OverlapSphere(transform.position, 0.01f, ladderMask)).Length > 0)
         {
-            vertivalSpeed = 0;
-            transform.position = new Vector3 (transform.position.x, (hitInfoGround.point.y + bodyRadius), transform.position.z); 
-        }
-    }
-
-    private void DetectLadder()
-    {
-
-        if (isOnLadder)
-        {
-            if (!ladderBounds.Contains(transform.position))
+            if (!isOnLadder)
             {
+                foreach (Collider collider in groundColliders)
+                {
+                    Physics.IgnoreCollision(playerCollider, collider, true);
+                }
+            }
+            isOnLadder = true;
+        }
+        else
+        {
+            if (isOnLadder)
+            {
+                foreach (Collider collider in groundColliders)
+                {
+                    Physics.IgnoreCollision(playerCollider, collider, false);
+                }
                 isOnLadder = false;
             }
-
         }
-        if (!isOnLadder)
-        {
-            
-            RaycastHit hitInfo;
-
-            Vector3 start = transform.position + (transform.right * (-halfBodyRadius));
-
-            if (Physics.Raycast(start, transform.right, out hitInfo, halfBodyRadius, ladderMask))
-            {
-                ladderBounds = hitInfo.collider.bounds;
-                isOnLadder = true;
-            }
-
-
-        }
+       
     }
 
     private void DetectActivable()
     {
+        Collider[] colliders;
 
-        if (isOnActivable)
+        if ((colliders = Physics.OverlapSphere(transform.position, 0.01f, activableMask)).Length > 0)
         {
-            if (!ActivableBounds.Contains(transform.position))
+            Activable currentActivable = colliders[0].gameObject.GetComponent<Activable>();
+
+            if (activable != currentActivable)
             {
-                Debug.Log(transform.position);
-                isOnActivable = false;
+                if(activable)
+                {
+                    activable.Release();
+                }
+                activable = currentActivable;
+                activable.hover = true;
             }
-
-        }
-        if (!isOnActivable)
+            isOnActivable = true;
+        } else
         {
-
-            RaycastHit hitInfo;
-
-            Vector3 start = transform.position + (transform.right * (-halfBodyRadius));
-
-            if (Physics.Raycast(start, transform.right, out hitInfo, halfBodyRadius, activableMask))
+            isOnActivable = false;
+            if (activable)
             {
-                ActivableBounds = hitInfo.collider.bounds;
-                ActivableBounds.Expand(.01f);
-                activable = hitInfo.collider.GetComponent<Activable>();
-                isOnActivable = true;
+                activable.Release();
+                activable.hover = false;
+                activable = null;
             }
-
         }
-        if (activable != null)
-        {
-            activable.hover = isOnActivable;
-        }
-
 
     }
 
