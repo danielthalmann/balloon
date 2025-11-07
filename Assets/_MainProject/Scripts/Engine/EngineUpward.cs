@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class EngineUpward : MonoBehaviour
+public class EngineUpward : MonoBehaviour, ProgressBarContract
 {
 
     [SerializeField]
@@ -37,8 +37,7 @@ public class EngineUpward : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        altimeter.value = GetValue();
+        altimeter.value = GetNormalValue();
 
         nextcurrent = nextcurrent + ((GetActivableForce() - downwardVector) * Time.deltaTime);
 
@@ -57,7 +56,6 @@ public class EngineUpward : MonoBehaviour
 
     }
 
-
     public float GetActivableForce()
     {
         return game.GetActivableForce();
@@ -69,6 +67,36 @@ public class EngineUpward : MonoBehaviour
     }
 
     public float GetValue()
+    {
+        return current;
+    }
+
+    public void SetMin(float v)
+    {
+        min = v;
+    }
+
+    public void SetMax(float v)
+    {
+        max = v;
+    }
+
+    public void SetValue(float v)
+    {
+        current = v;
+    }
+
+    public void SetActive(bool v)
+    {
+        gameObject.SetActive(v);
+    }
+
+    public bool IsActive()
+    {
+        return gameObject.activeSelf;
+    }
+
+    public float GetNormalValue()
     {
         return (current - min) / (max - min);
     }

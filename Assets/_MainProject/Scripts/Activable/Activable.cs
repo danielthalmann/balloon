@@ -18,8 +18,6 @@ public class Activable : MonoBehaviour, ActivableContract
 
     public bool hover = false;
 
-    bool activatedStarted = false;
-
     [SerializeField]
     RotateLinear rotateLinear;
 

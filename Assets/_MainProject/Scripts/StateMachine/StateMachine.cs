@@ -41,6 +41,7 @@ namespace StateMachine
         {
             if (currentState != null)
                 currentState.Update();
+            StateMachineUpdate();
         }
 
         // Update is called once per frame
@@ -48,6 +49,7 @@ namespace StateMachine
         {
             if (currentState != null)
                 currentState.FixedUpdate();
+            StateMachineFixedUpdate();
         }
 
         public void TransitionTo(string stateName)
@@ -75,6 +77,18 @@ namespace StateMachine
             states[stateName] = state;
             if (initialState)
                 currentState = state;
+        }
+
+        // Update internal stateMachine
+        public virtual void StateMachineUpdate()
+        {
+
+        }
+
+        // Fixed Update internal stateMachine
+        public virtual void StateMachineFixedUpdate()
+        {
+
         }
 
     }

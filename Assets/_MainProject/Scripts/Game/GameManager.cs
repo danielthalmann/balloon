@@ -8,35 +8,48 @@ public class GameManager : StateMachine.StateMachine
 
     public PlayerV2 player;
 
+    public Topography topography;
+
     [Header("UI")]
-    public GameObject ready;
+    public GameObject readyUI;
+    public GameObject loseUI;
+    public GameObject winUI;
 
     public EngineUpward engineUpward;
 
     public SceneLoaderManager sceneLoader;
 
-    public float fallForce = 0.5f;
+    [Header("Game parameters")]
+    public GameParameter parameter;
 
     private List<ActivableContract> activables = new List<ActivableContract>();
 
+    private float flyDurationTime = 0;
 
-    // Init state machine
-    public override void Init()
+    public static GameManager instance { get; protected set; } = null;
+
+    /// <summary>
+    /// add fly duration
+    /// </summary>
+    /// <param name="time"></param>
+    public void AddFlyTime(float time)
     {
-        playerInput = GetFirstObjectByType<PlayerInput>();
-        if (engineUpward == null)
-            engineUpward = GetFirstObjectByType<EngineUpward>();
-        if (engineUpward == null)
-            Debug.LogError("the engineUpward cannot be found in scene");
-        if (sceneLoader == null)
-            sceneLoader = GetFirstObjectByType<SceneLoaderManager>();
+        flyDurationTime += time;
+    }
 
-        // Example 
-        AddState("Start", new GameStartState(), true);
-        AddState("NormalFly", new GameNormalFlyState());
-        AddState("Lose", new GameLoseState());
-        AddState("Win", new GameWinState());
+    /// <summary>
+    /// return the force of all activable object
+    /// </summary>
+    /// <returns></returns>
+    public float GetActivableForce()
+    {
+        float force = 0;
 
+        foreach(Activable activable in activables)
+        {
+            force += activable.GetForce();
+        }
+        return force;
     }
 
     /// <summary>
@@ -56,23 +69,101 @@ public class GameManager : StateMachine.StateMachine
         return default(T);
     }
 
+    /// <summary>
+    /// Init state machine
+    /// </summary>
+    public override void Init()
+    {
+        if (GameManager.instance == null)
+        {
+            GameManager.instance = this;
+        } else
+        {
+            throw (new System.Exception("GameManager is soon instanciate"));
+        }
 
+        playerInput = GetFirstObjectByType<PlayerInput>();
+        if (engineUpward == null)
+            engineUpward = GetFirstObjectByType<EngineUpward>();
+        if (engineUpward == null)
+            Debug.LogError("the engineUpward cannot be found in scene");
+        if (sceneLoader == null)
+            sceneLoader = GetFirstObjectByType<SceneLoaderManager>();
+
+        // Example 
+        AddState("start", new GameStartState(), true);
+        AddState("normalFly", new GameNormalFlyState());
+        AddState("lose", new GameLoseState());
+        AddState("win", new GameWinState());
+
+        flyDurationTime = 0;
+
+    }
+
+    /// <summary>
+    /// Register a activable object
+    /// </summary>
+    /// <param name="activable"></param>
     public void RegisterActivable(ActivableContract activable)
     {
         activables.Add(activable);
     }
 
-    public float GetActivableForce()
+    /// <summary>
+    /// call this function after every frame 
+    /// </summary>
+    public override void StateMachineFixedUpdate()
     {
-        float force = 0;
-
-        foreach(Activable activable in activables)
-        {
-            force += activable.GetForce();
-        }
-        return force;
+        UpdateTopography();
     }
 
+    /// <summary>
+    /// Test if the balloon has reach the duration time of fly
+    /// </summary>
+    public void TestFlyFinish()
+    {
+        TestFlyLose();
+        TestFlyWin();
+    }
 
+    /// <summary>
+    /// Test if the balloon has reach the duration time of fly
+    /// </summary>
+    public void TestFlyLose()
+    {
+        float height = parameter.groundCurve.Evaluate(flyDurationTime / parameter.levelTimeDuration);
+        float balloonHeight = GetEngineUpwardValue();
+        Debug.Log("height:" + height + " balloonHeight:" + balloonHeight);
 
+        if (balloonHeight < height)
+        {
+            TransitionTo("lose");
+        }
+    }
+
+    /// <summary>
+    /// Test if the balloon has reach the duration time of fly
+    /// </summary>
+    public void TestFlyWin()
+    {
+        if (flyDurationTime > parameter.levelTimeDuration)
+        {
+            TransitionTo("win");
+        }
+    }
+
+    public float GetEngineUpwardValue()
+    {
+        return engineUpward.GetNormalValue();
+    }
+
+    public void UpdateTopography()
+    {
+        float h = GetEngineUpwardValue();
+        float t = (flyDurationTime / parameter.levelTimeDuration);
+
+        topography.h = h;
+        topography.t = t;
+
+    }
 }

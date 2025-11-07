@@ -11,20 +11,25 @@ public class GameStartState : State
 
     public override void Enter()
     {
-        ((GameManager)stateMachine).ready.SetActive(true);
-        ((GameManager)stateMachine).player.enabled = false;
+        GameManager.instance.topography.gameObject.SetActive(true);
+        GameManager.instance.topography.curve = GameManager.instance.parameter.groundCurve;
+        GameManager.instance.topography.generateMesh();
+        GameManager.instance.readyUI.SetActive(true);
+        GameManager.instance.winUI.SetActive(false);
+        GameManager.instance.loseUI.SetActive(false);
+        GameManager.instance.player.enabled = false;
     }
 
     public override void Leave()
     {
-        ((GameManager)stateMachine).ready.gameObject.SetActive(false);
+        GameManager.instance.readyUI.gameObject.SetActive(false);
     }
 
     public override void Update()
     {
-        if(((GameManager)stateMachine).playerInput.actions["Interact"].WasPressedThisFrame())
+        if(GameManager.instance.playerInput.actions["Interact"].WasPressedThisFrame())
         {
-            stateMachine.TransitionTo("NormalFly");
+            stateMachine.TransitionTo("normalFly");
         }
     }
 

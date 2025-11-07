@@ -11,9 +11,10 @@ public class GameWinState : State
 
     public override void Enter()
     {
-        ((GameManager)stateMachine).player.enabled = false;
-        ((GameManager)stateMachine).engineUpward.SetFallForce(0);
-        ((GameManager)stateMachine).StartCoroutine(WaitAndFinish(3.0f));
+        GameManager.instance.player.enabled = false;
+        GameManager.instance.engineUpward.SetFallForce(0);
+        GameManager.instance.winUI.SetActive(true);
+        GameManager.instance.StartCoroutine(WaitAndFinish(3.0f));
     }
 
     public override void Leave()
@@ -37,7 +38,7 @@ public class GameWinState : State
     {
         yield return new WaitForSeconds(waitTime);
 
-        ((GameManager)stateMachine).sceneLoader.LoadScene("Menu");
+        GameManager.instance.sceneLoader.LoadScene("Menu");
     }
 }
 
