@@ -23,12 +23,15 @@ public class PlayerV2 : MonoBehaviour
     private string groundTag = "Ground";
     [SerializeField]
     private Animator animator;
-
+    [SerializeField]
+    private float bodyHeight;
 
     [Header("Debug")]
 
     [SerializeField]
     bool debug = false;
+    [SerializeField]
+    bool isOnGround = false;
     [SerializeField]
     bool isOnLadder = false;
     [SerializeField]
@@ -85,6 +88,8 @@ public class PlayerV2 : MonoBehaviour
         DetectLadder(moveInput.y);
 
         DetectActivable();
+
+        DetectGround();
 
         ApplyAnimation();
 
@@ -144,7 +149,7 @@ public class PlayerV2 : MonoBehaviour
         {
             rb.useGravity = true;
 
-            if (jumpAction.WasPressedThisFrame())
+            if (isOnGround && jumpAction.WasPressedThisFrame())
             {
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
                 verticanDirection = rb.linearVelocity.y;
@@ -249,4 +254,17 @@ public class PlayerV2 : MonoBehaviour
     {
         isOnLadder = on;
     }
+
+    private void DetectGround()
+    {   
+        // Debug.DrawLine(transform.position, -transform.up * bodyHeight);
+        if(Physics.Raycast(transform.position, -transform.up, bodyHeight))
+        {
+            isOnGround = true;
+        } else
+        {
+            isOnGround = false;
+        }
+    }
+
 }
