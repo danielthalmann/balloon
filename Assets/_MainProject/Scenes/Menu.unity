@@ -1575,13 +1575,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: beaccebfd87a5d0478d324d2ca19eafe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startSceneName: Level_Daniel_2
+  startSceneName: Level
   CreditsSceneName: 
   menuSceneName: 
   resumeEvent:
     m_PersistentCalls:
       m_Calls: []
   cam: {fileID: 783407466}
+  targetPosition: {fileID: 0}
 --- !u!114 &1164435852
 MonoBehaviour:
   m_ObjectHideFlags: 0
