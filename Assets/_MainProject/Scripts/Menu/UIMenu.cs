@@ -45,8 +45,6 @@ public class UIMenu : MenuManager
 
     void StartGame()
     {
-
-
         ButtonStart();
     }
 

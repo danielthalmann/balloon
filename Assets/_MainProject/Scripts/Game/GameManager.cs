@@ -6,7 +6,7 @@ public class GameManager : StateMachine.StateMachine
 {
     public PlayerInput playerInput;
 
-    public PlayerV2 player;
+    public Player player;
 
     public Topography topography;
 

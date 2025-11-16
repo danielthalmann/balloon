@@ -33,8 +33,6 @@ public class Altimeter : MonoBehaviour
     [SerializeField]
     MinMax minMax;
 
-    Vector3 min;
-
     float diff;
 
 
@@ -42,6 +40,11 @@ public class Altimeter : MonoBehaviour
     void Start()
     {
         diff = minMax.max - minMax.min;
+    }
+
+    public void InitValue(float iv)
+    {
+        value = iv;
         if (orientation == Orientation.Vertival)
         {
             cursor.transform.localPosition = new Vector3(cursor.transform.localPosition.x, minMax.min + (diff * value), cursor.transform.localPosition.z);
@@ -54,7 +57,6 @@ public class Altimeter : MonoBehaviour
         {
             cursor.transform.localPosition = new Vector3(cursor.transform.localPosition.x, cursor.transform.localPosition.y, minMax.min + (diff * value));
         }
-
     }
 
   

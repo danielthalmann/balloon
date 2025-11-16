@@ -32,6 +32,7 @@ public class EngineUpward : MonoBehaviour, ProgressBarContract
         {
             Debug.LogError("GameManager not present");
         }
+        altimeter.InitValue(GetNormalValue());
     }
 
     // Update is called once per frame
