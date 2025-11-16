@@ -133,7 +133,7 @@ public class GameManager : StateMachine.StateMachine
     {
         float height = parameter.groundCurve.Evaluate(flyDurationTime / parameter.levelTimeDuration);
         float balloonHeight = GetEngineUpwardValue();
-        Debug.Log("height:" + height + " balloonHeight:" + balloonHeight);
+        //Debug.Log("height:" + height + " balloonHeight:" + balloonHeight);
 
         if (balloonHeight < height)
         {
