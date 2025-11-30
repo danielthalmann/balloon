@@ -13,14 +13,15 @@
     border-top-color: rgba(0, 0, 0, 0);
     border-bottom-color: rgba(0, 0, 0, 0);
     font-size: 36px;
+    color: rgb(255, 255, 255);
     -unity-text-outline-width: 1px;
     -unity-text-outline-color: rgb(0, 0, 0);
-    color: rgb(255, 255, 255);
     -unity-font-style: bold;
 }
 
 .primary {
 }
+
 .button:active {
     scale: 1.5 1.5;
 }
@@ -31,4 +32,9 @@
     transition-timing-function: ease-out-elastic;
     transition-property: scale;
     transition-delay: 0s;
+}
+
+.button:focus {
+    color: rgb(117, 227, 255);
+    scale: 1.1 1.1;
 }
