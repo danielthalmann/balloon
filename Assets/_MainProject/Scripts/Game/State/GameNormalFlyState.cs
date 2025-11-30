@@ -35,6 +35,9 @@ public class GameNormalFlyState : State
 
         GameManager.instance.TestFlyFinish();
 
+        // calcul le facteur de vitesse
+        GameManager.instance.CalculateSpeedFactor();
+
     }
 }
 
