@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Level1
   m_EditorClassIdentifier: 
   fallForce: 0.5
-  levelTimeDuration: 180
+  levelDistance: 150
+  limitOfBestFly: 0.6
   groundCurve:
     serializedVersion: 2
     m_Curve:
