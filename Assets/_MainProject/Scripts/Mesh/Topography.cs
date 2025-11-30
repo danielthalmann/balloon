@@ -8,7 +8,7 @@ public class Topography : MonoBehaviour
 {
 
     [Range(1, 10f)]
-    public float scale = 1.0f;
+    public float width = 1.0f;
 
     [Range(0, 1f)]
     public float h = 0f;
@@ -101,22 +101,22 @@ public class Topography : MonoBehaviour
                 float By = curve.Evaluate(ABx);
 
                 // A
-                vectrices[vectrice_idx + 0] = new Vector3(ABx * scale, 0, 0);
+                vectrices[vectrice_idx + 0] = new Vector3(ABx * width, 0, 0);
                 uv[vectrice_idx + 0] = new Vector2(0f, 0f);
                 normals[vectrice_idx + 0] = normal;
 
                 // B
-                vectrices[vectrice_idx + 1] = new Vector3(ABx * scale, By, 0);
+                vectrices[vectrice_idx + 1] = new Vector3(ABx * width, By, 0);
                 uv[vectrice_idx + 1] = new Vector2(0f, By);
                 normals[vectrice_idx + 1] = normal;
 
                 // C
-                vectrices[vectrice_idx + 2] = new Vector3(DCx * scale, Cy, 0);
+                vectrices[vectrice_idx + 2] = new Vector3(DCx * width, Cy, 0);
                 uv[vectrice_idx + 2] = new Vector2(DCx, Cy);
                 normals[vectrice_idx + 2] = normal;
 
                 // D
-                vectrices[vectrice_idx + 3] = new Vector3(DCx * scale, 0, 0);
+                vectrices[vectrice_idx + 3] = new Vector3(DCx * width, 0, 0);
                 uv[vectrice_idx + 3] = new Vector2(DCx, 0);
                 normals[vectrice_idx + 3] = normal;
 
@@ -136,11 +136,11 @@ public class Topography : MonoBehaviour
                 vectrice_idx = 2 + (i * 2);
 
                 // C
-                vectrices[vectrice_idx + 0] = new Vector3(DCx * scale, Cy, 0);
+                vectrices[vectrice_idx + 0] = new Vector3(DCx * width, Cy, 0);
                 uv[vectrice_idx + 0] = new Vector2(DCx, Cy);
                 normals[vectrice_idx + 0] = normal;
                 // D
-                vectrices[vectrice_idx + 1] = new Vector3(DCx * scale, 0, 0);
+                vectrices[vectrice_idx + 1] = new Vector3(DCx * width, 0, 0);
                 uv[vectrice_idx + 1] = new Vector2(DCx, 0);
                 normals[vectrice_idx + 1] = normal;
 
@@ -175,7 +175,7 @@ public class Topography : MonoBehaviour
 
     public void UpdatePosition()
     {
-        marker.transform.localPosition = new(t * scale, h, marker.transform.localPosition.z);
+        marker.transform.localPosition = new(t * width, h, marker.transform.localPosition.z);
     }
 
 }

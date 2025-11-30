@@ -3,10 +3,11 @@ using StateMachine;
 
 public class GameStartState : State
 {
-
+    TutorialManager tuto;
 
     public override void Start()
     {
+        tuto = GameManager.instance.GetComponent<TutorialManager>();
     }
 
     public override void Enter()
@@ -18,6 +19,12 @@ public class GameStartState : State
         GameManager.instance.winUI.SetActive(false);
         GameManager.instance.loseUI.SetActive(false);
         GameManager.instance.player.enabled = false;
+        GameManager.instance.speedFactor = 0;
+        if (tuto)
+        {
+            tuto.DisableAllTuto();
+        }
+
     }
 
     public override void Leave()
@@ -29,7 +36,14 @@ public class GameStartState : State
     {
         if(GameManager.instance.playerInput.actions["Interact"].WasPressedThisFrame())
         {
-            stateMachine.TransitionTo("normalFly");
+            if (tuto)
+            {
+                stateMachine.TransitionTo("tutorial");
+            }
+            else
+            {
+                stateMachine.TransitionTo("normalFly");
+            }
         }
     }
 

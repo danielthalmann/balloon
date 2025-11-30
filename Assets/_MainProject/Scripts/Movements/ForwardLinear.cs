@@ -17,6 +17,6 @@ public class ForwardLinear : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.position += (vector * (speed * Time.deltaTime));
+        transform.position += (vector * (GameManager.instance.speedFactor * speed * Time.deltaTime));
     }
 }
