@@ -20,7 +20,7 @@ public class GameReadyState : State
 
     public override void Update()
     {
-        if(GameManager.instance.playerInput.actions["Interact"].WasPressedThisFrame())
+        if(GameManager.instance.playerInput.actions["Interact"].WasPressedThisFrame() || GameManager.instance.playerInput.actions["Jump"].WasPressedThisFrame())
         {
             stateMachine.TransitionTo("normalFly");
         }

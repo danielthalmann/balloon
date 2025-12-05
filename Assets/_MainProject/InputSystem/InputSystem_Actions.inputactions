@@ -515,6 +515,17 @@
                 },
                 {
                     "name": "",
+                    "id": "a853a235-33c8-443e-928a-c1064f15b71b",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "8a26bbc8-4d6f-4cbf-bdc7-82f4b284c07f",
                     "path": "<Keyboard>/escape",
                     "interactions": "",

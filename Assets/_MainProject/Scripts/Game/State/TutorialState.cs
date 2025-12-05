@@ -21,7 +21,7 @@ public class TutorialState : State
 
     public override void Update()
     {
-        if(GameManager.instance.playerInput.actions["Interact"].WasPressedThisFrame())
+        if(GameManager.instance.playerInput.actions["Interact"].WasPressedThisFrame() || GameManager.instance.playerInput.actions["Jump"].WasPressedThisFrame())
         {
             if(!tuto.NextTuto())
             {
