@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fallForce: 0.5
   levelDistance: 150
-  limitOfBestFly: 0.6
+  limitOfBestFly: 0.7
   groundCurve:
     serializedVersion: 2
     m_Curve:

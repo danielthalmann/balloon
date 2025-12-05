@@ -18,6 +18,9 @@ public class GameManager : StateMachine.StateMachine
     [Header("Engine")]
     public EngineUpward engineUpward;
 
+    [Header("Camera")]
+    public CameraFollow cameraFollow;
+
     [Header("Scene")]
     public SceneLoaderManager sceneLoader;
 

@@ -14,7 +14,11 @@ public class GameWinState : State
         GameManager.instance.player.enabled = false;
         GameManager.instance.engineUpward.SetFallForce(0);
         GameManager.instance.winUI.SetActive(true);
-        GameManager.instance.StartCoroutine(WaitAndFinish(3.0f));
+        if(GameManager.instance.cameraFollow)
+        {
+            GameManager.instance.cameraFollow.macro = true;
+        }
+        GameManager.instance.StartCoroutine(WaitAndFinish(6.0f));
     }
 
     public override void Leave()

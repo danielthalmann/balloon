@@ -19,6 +19,10 @@ public class GameStartState : State
         GameManager.instance.winUI.SetActive(false);
         GameManager.instance.loseUI.SetActive(false);
         GameManager.instance.player.enabled = false;
+        if (GameManager.instance.cameraFollow)
+        {
+            GameManager.instance.cameraFollow.macro = false;
+        }
         GameManager.instance.speedFactor = 0;
         if (tuto)
         {
