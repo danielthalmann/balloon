@@ -1,38 +1,30 @@
 using UnityEngine;
 using StateMachine;
 
-public class TutorialState : State
+public class GameReadyState : State
 {
-    TutorialManager tuto;
 
     public override void Start()
     {
-        tuto = GameManager.instance.GetComponent<TutorialManager>();
     }
 
     public override void Enter()
     {
-        tuto.StartTuto();
+        GameManager.instance.readyUI.SetActive(true);
     }
 
     public override void Leave()
     {
+        GameManager.instance.readyUI.gameObject.SetActive(false);
     }
 
     public override void Update()
     {
         if(GameManager.instance.playerInput.actions["Interact"].WasPressedThisFrame())
         {
-            if(!tuto.NextTuto())
-            {
-                stateMachine.TransitionTo("ready");
-            }
+            stateMachine.TransitionTo("normalFly");
         }
     }
 
-    public override void FixedUpdate()
-    {
-
-    }
 }
 

@@ -100,6 +100,7 @@ public class GameManager : StateMachine.StateMachine
         // Example 
         AddState("start", new GameStartState(), true);
         AddState("tutorial", new TutorialState());
+        AddState("ready", new GameReadyState());
         AddState("normalFly", new GameNormalFlyState());
         AddState("lose", new GameLoseState());
         AddState("win", new GameWinState());

@@ -26,6 +26,17 @@ public abstract class ProgressBarAbstract : MonoBehaviour, ProgressBarContract
         max = v;
     }
 
+    public float GetValue()
+    {
+        return value;
+    }
+
+    public void SetNormalValue(float v)
+    {
+        this.value = v * (max - min);
+        normalValue = v;
+    }
+
     public float GetNormalValue()
     {
         return normalValue;

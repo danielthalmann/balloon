@@ -2,8 +2,8 @@
     <Style src="project://database/Assets/_MainProject/UI%20Toolkit/styles.uss?fileID=7433441132597879392&amp;guid=e9c59bc8003c99d46a713210ee73153a&amp;type=3#styles" />
     <engine:VisualElement style="flex-grow: 1; justify-content: center; background-color: rgba(0, 0, 0, 0.75);">
         <engine:GroupBox style="align-self: center; flex-direction: column;">
-            <engine:Button text="Resume" name="ButtonResume" class="button primary" />
-            <engine:Button text="Quit" name="ButtonQuit" class="button" />
+            <engine:Button text="Reprendre" name="ButtonResume" class="button primary" />
+            <engine:Button text="Quitter" name="ButtonQuit" class="button" />
         </engine:GroupBox>
     </engine:VisualElement>
 </engine:UXML>
