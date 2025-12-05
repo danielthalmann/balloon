@@ -23,7 +23,7 @@ public class UIMenuPause : MenuManager
     {
 
         document = GetComponent<UIDocument>();
-
+        document.rootVisualElement.Q<Button>("ButtonResume").Focus();
         document.rootVisualElement.Q<Button>("ButtonResume").clicked += StartGame;
         document.rootVisualElement.Q<Button>("ButtonQuit").clicked += QuitGame;
 

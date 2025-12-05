@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using System.Collections;
 
 public class UIMenu : MenuManager
 
@@ -40,6 +41,17 @@ public class UIMenu : MenuManager
 
         document.rootVisualElement.Q<Button>("ButtonStart").clicked += StartGame;
         document.rootVisualElement.Q<Button>("ButtonQuit").clicked += QuitGame;
+
+        StartCoroutine(WaitAndFinish(2.0f));
+
+    }
+
+    private IEnumerator WaitAndFinish(float waitTime)
+    {
+        yield return new WaitForSeconds(waitTime);
+
+        document.rootVisualElement.Focus();
+        document.rootVisualElement.Q<Button>("ButtonStart").Focus();
 
     }
 

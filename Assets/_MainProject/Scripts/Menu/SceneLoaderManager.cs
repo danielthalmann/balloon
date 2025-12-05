@@ -72,10 +72,12 @@ public class SceneLoaderManager : MonoBehaviour
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 canvas.worldCamera = Camera.main;
                 canvas.sortingOrder = 100;
+                
             //}
             GameObject gameObject = new GameObject();
 
             fadeImage = gameObject.AddComponent<Image>();
+            fadeImage.raycastTarget = false;
             gameObject.name = "Splash screen";
             gameObject.transform.SetParent(canvas.transform);
             AdjustPanelToScreen(gameObject, 0);
