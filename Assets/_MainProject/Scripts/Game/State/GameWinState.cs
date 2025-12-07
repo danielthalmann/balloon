@@ -19,6 +19,10 @@ public class GameWinState : State
             GameManager.instance.cameraFollow.macro = true;
         }
         GameManager.instance.StartCoroutine(WaitAndFinish(6.0f));
+        foreach (FMODUnity.StudioEventEmitter fm in Object.FindObjectsByType<FMODUnity.StudioEventEmitter>(FindObjectsSortMode.None))
+        {
+            fm.Stop();
+        }
     }
 
     public override void Leave()
