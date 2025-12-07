@@ -15,11 +15,16 @@ public class GameLoseState : State
         GameManager.instance.engineUpward.SetFallForce(0);
         GameManager.instance.loseUI.SetActive(true);
         GameManager.instance.StartCoroutine(WaitAndFinish(3.0f));
+        foreach (FMODUnity.StudioEventEmitter fm in Object.FindObjectsByType<FMODUnity.StudioEventEmitter>(FindObjectsSortMode.None))
+        {
+            fm.Stop();
+        }
+
     }
 
     public override void Leave()
     {
-
+                
     }
 
     public override void Update()

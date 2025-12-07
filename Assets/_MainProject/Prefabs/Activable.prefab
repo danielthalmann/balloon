@@ -315,6 +315,7 @@ GameObject:
   - component: {fileID: 4603384309536330318}
   - component: {fileID: 8690067539323752251}
   - component: {fileID: 4093749456165837125}
+  - component: {fileID: 8572636718010459721}
   m_Layer: 9
   m_Name: Activable
   m_TagString: Untagged
@@ -383,6 +384,25 @@ MonoBehaviour:
   hover: 0
   rotateLinear: {fileID: 6423741453016000927}
   progressBar: {fileID: 6359079145014575869}
+--- !u!114 &8572636718010459721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2950642837208834913}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3608340630ceddc4896d4d5807ae00cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  activeSound:
+    Guid:
+      Data1: -1541425123
+      Data2: 1295111024
+      Data3: 449400455
+      Data4: 922405841
+    Path: event:/FX/Button
 --- !u!1 &5559783452191004424
 GameObject:
   m_ObjectHideFlags: 0

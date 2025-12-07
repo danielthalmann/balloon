@@ -1,4 +1,5 @@
 using System;
+using UnityEditor;
 using UnityEngine;
 
 public class Activable : MonoBehaviour, ActivableContract
@@ -23,6 +24,8 @@ public class Activable : MonoBehaviour, ActivableContract
 
     [SerializeField]
     ProgressBarAbstract progressBar;
+
+    private bool activationInProgress;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -64,6 +67,11 @@ public class Activable : MonoBehaviour, ActivableContract
         }
     }
 
+    public bool IsActivationInProgress()
+    {
+        return activationInProgress;
+    }
+
     public void Activate()
     {
         if (!activated)
@@ -83,6 +91,12 @@ public class Activable : MonoBehaviour, ActivableContract
                 activationDurationTimer = 0;
                 effectDurationTimer = 0;
             }
+            activationInProgress = true;
+
+        }
+        else
+        {
+            activationInProgress = false;
         }
     }
 
@@ -90,6 +104,7 @@ public class Activable : MonoBehaviour, ActivableContract
     {
         if (!activated)
         {
+            activationInProgress = false;
             activationDurationTimer = 0;
             if (!activated)
             {
