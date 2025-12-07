@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{20b2f458-ed25-427d-8a99-b58f9ce344a5}">
+		<property name="assetPath">
+			<value>Effects/jump-retro.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>1</value>
+		</property>
+		<property name="length">
+			<value>0.5485714285714286</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{a6028522-4b74-49a6-826e-988df4503aec}</destination>
+		</relationship>
+	</object>
+</objects>

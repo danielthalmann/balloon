@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{813d1329-d490-4252-8f93-e7b8d2a84680}">
+		<property name="assetPath">
+			<value>Effects/ship-engine-interior-buzz-loop-248613.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>7.4971428571428573</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{a6028522-4b74-49a6-826e-988df4503aec}</destination>
+		</relationship>
+	</object>
+</objects>

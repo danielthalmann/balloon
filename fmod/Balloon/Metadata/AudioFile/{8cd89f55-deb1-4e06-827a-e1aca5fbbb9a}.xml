@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{8cd89f55-deb1-4e06-827a-e1aca5fbbb9a}">
+		<property name="assetPath">
+			<value>Effects/fire-sounds-356121.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>8.0979591836734688</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{a6028522-4b74-49a6-826e-988df4503aec}</destination>
+		</relationship>
+	</object>
+</objects>
