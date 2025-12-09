@@ -13,6 +13,9 @@ public class UIMenu : MenuManager
     private Transform targetPosition;
     private Transform sourcePosition;
 
+    [SerializeField]
+    private Credits credits;
+
     private bool toMap;
     private bool animate;
 
@@ -41,6 +44,7 @@ public class UIMenu : MenuManager
 
         document.rootVisualElement.Q<Button>("ButtonStart").clicked += StartGame;
         document.rootVisualElement.Q<Button>("ButtonQuit").clicked += QuitGame;
+        document.rootVisualElement.Q<Button>("ButtonCredits").clicked += CreditsGame;
 
         StartCoroutine(WaitAndFinish(2.0f));
 
@@ -68,5 +72,10 @@ public class UIMenu : MenuManager
     void QuitGame()
     {
         ButtonQuit();
+    }
+
+    void CreditsGame()
+    {
+        credits.StartCredits();
     }
 }
