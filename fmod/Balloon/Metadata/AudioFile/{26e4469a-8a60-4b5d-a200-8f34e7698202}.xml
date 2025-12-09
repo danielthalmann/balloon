@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects serializationModel="Studio.02.03.00">
-	<object class="AudioFile" id="{ead42141-bdc4-4783-8662-1b541b02899a}">
+	<object class="AudioFile" id="{26e4469a-8a60-4b5d-a200-8f34e7698202}">
 		<property name="assetPath">
-			<value>Ambient/afternoon-ambient-piano-solo-24367.mp3</value>
+			<value>Ambient/piano-documentary-ambient-136105.mp3</value>
 		</property>
 		<property name="isStreaming">
 			<value>true</value>
 		</property>
 		<property name="frequencyInKHz">
-			<value>24</value>
+			<value>44.0999985</value>
 		</property>
 		<property name="channelCount">
 			<value>2</value>
 		</property>
 		<property name="length">
-			<value>128.232</value>
+			<value>77.531428571428577</value>
 		</property>
 		<relationship name="masterAssetFolder">
 			<destination>{a6028522-4b74-49a6-826e-988df4503aec}</destination>

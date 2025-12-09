@@ -60,7 +60,7 @@
 	<object class="MarkerTrack" id="{996bf714-85df-43f7-a8f0-b4cdc6ac824d}" />
 	<object class="GroupTrack" id="{f46453df-dc43-4356-87c5-aea936a8e124}">
 		<relationship name="modules">
-			<destination>{d44f6462-7308-4d48-bc2c-436a99de7c60}</destination>
+			<destination>{780c6897-821a-4c75-90c3-ab00feb59035}</destination>
 		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{219c798b-7b56-4625-90cd-23d68c5b9fa0}</destination>
@@ -68,7 +68,7 @@
 	</object>
 	<object class="Timeline" id="{d06a32a3-0d47-4b53-9cb9-d6d5a0159661}">
 		<relationship name="modules">
-			<destination>{d44f6462-7308-4d48-bc2c-436a99de7c60}</destination>
+			<destination>{780c6897-821a-4c75-90c3-ab00feb59035}</destination>
 		</relationship>
 		<relationship name="markers">
 			<destination>{95d51525-1998-4030-8266-3b41a761faad}</destination>
@@ -91,18 +91,18 @@
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{7595f911-0aea-48b4-8191-31b46d15f58f}" />
-	<object class="SingleSound" id="{d44f6462-7308-4d48-bc2c-436a99de7c60}">
+	<object class="SingleSound" id="{780c6897-821a-4c75-90c3-ab00feb59035}">
 		<property name="length">
-			<value>128.232</value>
-		</property>
-		<property name="looping">
-			<value>true</value>
+			<value>77.531428571428577</value>
 		</property>
 		<relationship name="audioFile">
-			<destination>{ead42141-bdc4-4783-8662-1b541b02899a}</destination>
+			<destination>{26e4469a-8a60-4b5d-a200-8f34e7698202}</destination>
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{219c798b-7b56-4625-90cd-23d68c5b9fa0}">
+		<property name="volume">
+			<value>-19.5</value>
+		</property>
 		<property name="name">
 			<value>Audio 1</value>
 		</property>
@@ -118,10 +118,10 @@
 	</object>
 	<object class="LoopRegion" id="{95d51525-1998-4030-8266-3b41a761faad}">
 		<property name="position">
-			<value>0</value>
+			<value>0.5</value>
 		</property>
 		<property name="length">
-			<value>127</value>
+			<value>73.5</value>
 		</property>
 		<relationship name="timeline">
 			<destination>{d06a32a3-0d47-4b53-9cb9-d6d5a0159661}</destination>
