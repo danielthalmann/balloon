@@ -8,7 +8,9 @@ public class GameManager : StateMachine.StateMachine
 
     public Player player;
 
+    [Header("Topography")]
     public Topography topography;
+    public Topography ground;
 
     [Header("UI")]
     public GameObject readyUI;
@@ -201,6 +203,9 @@ public class GameManager : StateMachine.StateMachine
 
         topography.h = h;
         topography.t = t;
+
+        ground.h = h;
+        ground.t = t;
 
     }
 }

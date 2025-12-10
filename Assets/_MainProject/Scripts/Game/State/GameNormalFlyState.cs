@@ -31,7 +31,7 @@ public class GameNormalFlyState : State
     {
         GameManager.instance.AddFlyTime(Time.fixedDeltaTime);
 
-        GameManager.instance.engineUpward.SetFallForce(((GameManager)stateMachine).parameter.fallForce);
+        GameManager.instance.engineUpward.SetFallForce(GameManager.instance.parameter.fallForce);
 
         GameManager.instance.TestFlyFinish();
 

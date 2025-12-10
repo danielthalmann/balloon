@@ -7,8 +7,8 @@ using UnityEngine;
 public class Topography : MonoBehaviour
 {
 
-    [Range(1, 10f)]
     public float width = 1.0f;
+    public float height = 1.0f;
 
     [Range(0, 1f)]
     public float h = 0f;
@@ -19,6 +19,8 @@ public class Topography : MonoBehaviour
 
     public GameObject marker;
 
+    public bool withoutMarker = false;
+
     private Vector3[] vectrices;
     private Vector2[] uv;
     private int[] triangles;
@@ -28,6 +30,8 @@ public class Topography : MonoBehaviour
 
     private MeshRenderer mRender;
     private MeshFilter mFilter;
+
+    private Vector3 initPosition;
 
     public AnimationCurve curve;
 
@@ -60,7 +64,7 @@ public class Topography : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        initPosition = transform.position;
     }
 
 
@@ -101,22 +105,22 @@ public class Topography : MonoBehaviour
                 float By = curve.Evaluate(ABx);
 
                 // A
-                vectrices[vectrice_idx + 0] = new Vector3(ABx * width, 0, 0);
+                vectrices[vectrice_idx + 0] = new Vector3(ABx * width, 0 * height, 0);
                 uv[vectrice_idx + 0] = new Vector2(0f, 0f);
                 normals[vectrice_idx + 0] = normal;
 
                 // B
-                vectrices[vectrice_idx + 1] = new Vector3(ABx * width, By, 0);
+                vectrices[vectrice_idx + 1] = new Vector3(ABx * width, By * height, 0);
                 uv[vectrice_idx + 1] = new Vector2(0f, By);
                 normals[vectrice_idx + 1] = normal;
 
                 // C
-                vectrices[vectrice_idx + 2] = new Vector3(DCx * width, Cy, 0);
+                vectrices[vectrice_idx + 2] = new Vector3(DCx * width, Cy * height, 0);
                 uv[vectrice_idx + 2] = new Vector2(DCx, Cy);
                 normals[vectrice_idx + 2] = normal;
 
                 // D
-                vectrices[vectrice_idx + 3] = new Vector3(DCx * width, 0, 0);
+                vectrices[vectrice_idx + 3] = new Vector3(DCx * width, 0 * height, 0);
                 uv[vectrice_idx + 3] = new Vector2(DCx, 0);
                 normals[vectrice_idx + 3] = normal;
 
@@ -136,11 +140,11 @@ public class Topography : MonoBehaviour
                 vectrice_idx = 2 + (i * 2);
 
                 // C
-                vectrices[vectrice_idx + 0] = new Vector3(DCx * width, Cy, 0);
+                vectrices[vectrice_idx + 0] = new Vector3(DCx * width, Cy * height, 0);
                 uv[vectrice_idx + 0] = new Vector2(DCx, Cy);
                 normals[vectrice_idx + 0] = normal;
                 // D
-                vectrices[vectrice_idx + 1] = new Vector3(DCx * width, 0, 0);
+                vectrices[vectrice_idx + 1] = new Vector3(DCx * width, 0 * height, 0);
                 uv[vectrice_idx + 1] = new Vector2(DCx, 0);
                 normals[vectrice_idx + 1] = normal;
 
@@ -161,6 +165,7 @@ public class Topography : MonoBehaviour
         mesh.vertices = vectrices;
         mesh.uv = uv;
         mesh.triangles = triangles;
+        //mesh.SetTriangles(triangles, 1);
         mesh.normals = normals;
         mesh.RecalculateBounds();
         mFilter.mesh = mesh;
@@ -175,7 +180,13 @@ public class Topography : MonoBehaviour
 
     public void UpdatePosition()
     {
-        marker.transform.localPosition = new(t * width, h, marker.transform.localPosition.z);
+        if(withoutMarker)
+        {
+            transform.position = new Vector3(initPosition.x - (t * width), initPosition.y, initPosition.z);
+        } else
+        {
+            marker.transform.localPosition = new(t * width, h * height, marker.transform.localPosition.z);
+        }
     }
 
 }

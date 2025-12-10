@@ -97,6 +97,11 @@ public class EngineUpward : MonoBehaviour, ProgressBarContract
         return gameObject.activeSelf;
     }
 
+    public float GetDeltaValue()
+    {
+        return (max - min);
+    }
+
     public float GetNormalValue()
     {
         return (current - min) / (max - min);

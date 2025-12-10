@@ -15,6 +15,13 @@ public class GameStartState : State
         GameManager.instance.topography.gameObject.SetActive(true);
         GameManager.instance.topography.curve = GameManager.instance.parameter.groundCurve;
         GameManager.instance.topography.generateMesh();
+
+        
+        GameManager.instance.ground.curve = GameManager.instance.parameter.groundCurve;
+        GameManager.instance.ground.width = GameManager.instance.parameter.levelDistance;
+        GameManager.instance.ground.height = GameManager.instance.engineUpward.GetDeltaValue();
+        GameManager.instance.ground.generateMesh();
+
         GameManager.instance.readyUI.SetActive(false);
         GameManager.instance.winUI.SetActive(false);
         GameManager.instance.loseUI.SetActive(false);
