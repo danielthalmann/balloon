@@ -39,6 +39,12 @@ public class GameNormalFlyState : State
         GameManager.instance.CalculateSpeedFactor();
 
 
+        if (GameManager.instance.topography.t > .6f && !GameManager.instance.rain.activeSelf)
+        {
+            GameManager.instance.rain.SetActive(true);
+        }
+
+
         if (GameManager.instance.GetElevationFly() > .5f)
         {
             tooHeight = true;

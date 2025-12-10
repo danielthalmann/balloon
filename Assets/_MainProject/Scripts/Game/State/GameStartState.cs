@@ -16,9 +16,8 @@ public class GameStartState : State
         GameManager.instance.topography.curve = GameManager.instance.parameter.groundCurve;
         GameManager.instance.topography.generateMesh();
 
-        
         GameManager.instance.ground.curve = GameManager.instance.parameter.groundCurve;
-        GameManager.instance.ground.width = GameManager.instance.parameter.levelDistance;
+        GameManager.instance.ground.width = GameManager.instance.parameter.levelDistance * 1.5f;
         GameManager.instance.ground.height = GameManager.instance.engineUpward.GetDeltaValue();
         GameManager.instance.ground.generateMesh();
 
@@ -31,6 +30,8 @@ public class GameStartState : State
             GameManager.instance.cameraFollow.macro = false;
         }
         GameManager.instance.speedFactor = 0;
+        GameManager.instance.rain.SetActive(false);
+
         if (tuto)
         {
             tuto.DisableAllTuto();

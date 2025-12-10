@@ -13,6 +13,7 @@ public class GameLoseState : State
     {
         GameManager.instance.player.enabled = false;
         GameManager.instance.engineUpward.SetFallForce(0);
+        GameManager.instance.engineUpward.enabled = false;
         GameManager.instance.loseUI.SetActive(true);
         GameManager.instance.StartCoroutine(WaitAndFinish(3.0f));
         foreach (FMODUnity.StudioEventEmitter fm in Object.FindObjectsByType<FMODUnity.StudioEventEmitter>(FindObjectsSortMode.None))

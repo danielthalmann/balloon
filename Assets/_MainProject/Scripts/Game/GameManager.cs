@@ -42,6 +42,10 @@ public class GameManager : StateMachine.StateMachine
 
     private float diffHeightFly = 1f;
 
+    [Header("Evironments")]
+    public GameObject rain;
+
+
     /// <summary>
     /// add fly duration
     /// </summary>
