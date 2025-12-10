@@ -5,6 +5,7 @@ public class GameNormalFlyState : State
 {
 
     protected EngineUpward engineUpward;
+    protected bool tooHeight = false;
 
     public override void Start()
     {
@@ -31,12 +32,32 @@ public class GameNormalFlyState : State
     {
         GameManager.instance.AddFlyTime(Time.fixedDeltaTime);
 
-        GameManager.instance.engineUpward.SetFallForce(GameManager.instance.parameter.fallForce);
 
         GameManager.instance.TestFlyFinish();
 
         // calcul le facteur de vitesse
         GameManager.instance.CalculateSpeedFactor();
+
+
+        if (GameManager.instance.GetElevationFly() > .5f)
+        {
+            tooHeight = true;
+        } 
+
+        if (tooHeight)
+        {
+            if (GameManager.instance.GetElevationFly() < .3f)
+            {
+                tooHeight = false;
+            }
+            GameManager.instance.engineUpward.SetFallForce(GameManager.instance.parameter.fallForce * 2);
+        }
+        else
+        {
+            GameManager.instance.engineUpward.SetFallForce(GameManager.instance.parameter.fallForce);
+        }
+
+
 
     }
 }

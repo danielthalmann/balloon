@@ -40,6 +40,8 @@ public class GameManager : StateMachine.StateMachine
 
     public static GameManager instance { get; protected set; } = null;
 
+    private float diffHeightFly = 1f;
+
     /// <summary>
     /// add fly duration
     /// </summary>
@@ -141,26 +143,35 @@ public class GameManager : StateMachine.StateMachine
     }
 
     /// <summary>
+    /// Return the diff of elevation of balloon and the elevation of ground
+    /// </summary>
+    /// <returns></returns>
+    public float GetElevationFly()
+    {
+        return diffHeightFly;
+    }
+
+    /// <summary>
     /// Calculate the speed of engine from the height of the ground
     /// </summary>
     public void CalculateSpeedFactor()
     {
         float height_engine = GetEngineUpwardValue();
         float height_ground = parameter.groundCurve.Evaluate(flyDistance / parameter.levelDistance);
-        float diff = height_engine - height_ground;
+        diffHeightFly = height_engine - height_ground;
 
-        if(diff < 0)
+        if(diffHeightFly < 0)
         {
             speedFactor = 1.0f;
             return;
         }
 
-        if (diff > parameter.limitOfBestFly)
+        if (diffHeightFly > parameter.limitOfBestFly)
         {
             speedFactor = 0;
         } else 
         {
-            speedFactor = 2.0f - (diff / (parameter.limitOfBestFly / 2));
+            speedFactor = 2.0f - (diffHeightFly / (parameter.limitOfBestFly / 2));
         }
 
     }
