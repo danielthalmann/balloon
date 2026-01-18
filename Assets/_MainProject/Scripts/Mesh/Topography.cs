@@ -40,6 +40,7 @@ public class Topography : MonoBehaviour
 
     public int resolution = 5;
 
+    public int resolutionLength = 3;
     public bool deep = false;
 
     private void Awake()
@@ -71,6 +72,13 @@ public class Topography : MonoBehaviour
     {
         initPosition = transform.position;
     }
+    public static double CalculerY(double x, double w, double h)
+    {
+        if (w == 0)
+            throw new ArgumentException("w ne doit pas être nul.");
+
+        return h - (h / (w * w)) * (x * x);
+    }
 
     public void generateMeshDeep()
     {
@@ -80,8 +88,7 @@ public class Topography : MonoBehaviour
         vectrices = new Vector3[vectricesNumber];
         uv = new Vector2[vectricesNumber];
         normals = new Vector3[vectricesNumber];
-        triangles = new int[resolution * 6];
-        deep_triangles = new int[resolution * 6];
+        triangles = new int[resolution * 6 * 2];
 
         //    z ^   C(2)  D(3)   (6)     (9)
         //     /     ----  ...   -  .   -         
@@ -144,13 +151,13 @@ public class Topography : MonoBehaviour
         triangles[4] = 4;
         triangles[5] = 5;
 
-        deep_triangles[0] = 1;
-        deep_triangles[1] = 2;
-        deep_triangles[2] = 3;
+        triangles[6] = 1;
+        triangles[7] = 2;
+        triangles[8] = 3;
 
-        deep_triangles[3] = 1;
-        deep_triangles[4] = 3;
-        deep_triangles[5] = 4;
+        triangles[9] = 1;
+        triangles[10] = 3;
+        triangles[11] = 4;
  
         for (i = 1; i < resolution; i++)
         {
@@ -159,7 +166,7 @@ public class Topography : MonoBehaviour
             Ey = curve.Evaluate(EFx);
             By = curve.Evaluate(ABx);
 
-            triangle_idx = 6 * i;
+            triangle_idx = 6 * 2 * i;
             vectrice_idx = ((i + 1) * 3);
 
             // D
@@ -178,7 +185,6 @@ public class Topography : MonoBehaviour
             normals[vectrice_idx + 2] = normal;
 
             int vect_pos = vectrice_idx;
-
             
             triangles[triangle_idx + 0] = vect_pos - 1;
             triangles[triangle_idx + 1] = vect_pos - 2;
@@ -188,23 +194,22 @@ public class Topography : MonoBehaviour
             triangles[triangle_idx + 4] = vect_pos + 1;
             triangles[triangle_idx + 5] = vect_pos + 2;
 
-            deep_triangles[triangle_idx + 0] = vect_pos - 2;
-            deep_triangles[triangle_idx + 1] = vect_pos - 3;
-            deep_triangles[triangle_idx + 2] = vect_pos;
+            triangles[triangle_idx + 6] = vect_pos - 2;
+            triangles[triangle_idx + 7] = vect_pos - 3;
+            triangles[triangle_idx + 8] = vect_pos;
 
-            deep_triangles[triangle_idx + 3] = vect_pos - 2;
-            deep_triangles[triangle_idx + 4] = vect_pos;
-            deep_triangles[triangle_idx + 5] = vect_pos + 1;          
+            triangles[triangle_idx + 9] = vect_pos - 2;
+            triangles[triangle_idx + 10] = vect_pos;
+            triangles[triangle_idx + 11] = vect_pos + 1;          
 
         }
 
         mesh = new Mesh();
         mesh.vertices = vectrices;
         mesh.uv = uv;
-        //mesh.triangles = triangles;
-        mesh.subMeshCount = 2;
-        mesh.SetTriangles(triangles, 0);
-        mesh.SetTriangles(deep_triangles, 1);
+        mesh.triangles = triangles;
+        //mesh.subMeshCount = 2;
+        //mesh.SetTriangles(triangles, 0);
         
         mesh.normals = normals;
         mesh.RecalculateBounds();
