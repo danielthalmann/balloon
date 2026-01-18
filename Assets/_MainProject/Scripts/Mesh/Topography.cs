@@ -72,23 +72,106 @@ public class Topography : MonoBehaviour
     {
         initPosition = transform.position;
     }
-    public static double CalculerY(double x, double w, double h)
+    public static float CalculerY(float x, float w, float h)
     {
-        if (w == 0)
-            throw new ArgumentException("w ne doit pas être nul.");
-
         return h - (h / (w * w)) * (x * x);
+    }
+
+    public void NormalizeResolution()
+    {
+        if (resolution < 2)
+        {
+            resolution = 2;
+        }
+        
+        if (resolutionLength < 3)
+        {
+            resolutionLength = 3;
+        }        
+    }
+
+    public float[] Matrice()
+    {
+        float[] map = new float[resolution * resolutionLength];
+
+        for (int deep = 0; deep < resolutionLength; deep++)
+        {
+            for (int profil = 0; profil < resolution; profil++)
+            {
+                float portion = profil / resolution;
+                float maxHeight = curve.Evaluate(portion);
+                map[profil * deep] = CalculerY(maxHeight, (deep / resolutionLength) - .5f, 1.0f);
+            }
+        }
+
+        return map;
     }
 
     public void generateMeshDeep()
     {
+        NormalizeResolution();
+
+        float[] map = Matrice();
+
         int vectricesNumber;
-        vectricesNumber = (resolution * 3) + 3;
+        vectricesNumber = map.Length;
 
         vectrices = new Vector3[vectricesNumber];
         uv = new Vector2[vectricesNumber];
         normals = new Vector3[vectricesNumber];
-        triangles = new int[resolution * 6 * 2];
+        triangles = new int[(resolution - 1) * (resolutionLength - 1) * 6];
+
+        for (int i = 0; i < resolutionLength; i++)
+        {
+
+            for (int y = 0; y < resolution; y++)
+            {
+
+                float stepTopo = y / resolution;
+                float stepDeep = i / resolutionLength;
+                // D
+                vectrices[(i * y) + 0] = new Vector3(stepTopo, map[(i) * (y)] * height, stepDeep);
+                uv[i + 0] = new Vector2(stepTopo, stepDeep);
+                normals[i + 0] = normal_up;
+            }
+
+        }
+        
+        /*
+
+                triangles[triangle_idx + 0] = vect_pos - 1;
+                triangles[triangle_idx + 1] = vect_pos - 2;
+                triangles[triangle_idx + 2] = vect_pos + 1;
+
+                triangles[triangle_idx + 3] = vect_pos - 1;
+                triangles[triangle_idx + 4] = vect_pos + 1;
+                triangles[triangle_idx + 5] = vect_pos + 2;
+
+                triangles[triangle_idx + 6] = vect_pos - 2;
+                triangles[triangle_idx + 7] = vect_pos - 3;
+                triangles[triangle_idx + 8] = vect_pos;
+
+                triangles[triangle_idx + 9] = vect_pos - 2;
+                triangles[triangle_idx + 10] = vect_pos;
+                triangles[triangle_idx + 11] = vect_pos + 1;
+*/
+
+    }
+
+    public void generateMeshDeepold()
+    {
+        NormalizeResolution();
+
+        float[] map = Matrice();
+
+
+        int vectricesNumber;
+        vectricesNumber = map.Length;
+
+        vectrices = new Vector3[vectricesNumber];
+        uv = new Vector2[vectricesNumber];
+        normals = new Vector3[vectricesNumber];
+        triangles = new int[(resolution - 1) * (resolutionLength - 1) * 6];
 
         //    z ^   C(2)  D(3)   (6)     (9)
         //     /     ----  ...   -  .   -         
@@ -132,7 +215,7 @@ public class Topography : MonoBehaviour
         vectrices[vectrice_idx + 3] = new Vector3(EFx * width, Ey * height, length);
         uv[vectrice_idx + 3] = new Vector2(EFx, 1f);
         normals[vectrice_idx + 3] = normal_up;
-        
+
         // E (4)
         vectrices[vectrice_idx + 4] = new Vector3(EFx * width, Ey * height, 0);
         uv[vectrice_idx + 4] = new Vector2(EFx, Ey);
@@ -158,8 +241,8 @@ public class Topography : MonoBehaviour
         triangles[9] = 1;
         triangles[10] = 3;
         triangles[11] = 4;
- 
-        for (i = 1; i < resolution; i++)
+
+        for (i = 1; i < resolution - 1; i++)
         {
             ABx = i / (float)resolution;
             EFx = (i + 1) / (float)resolution;
@@ -178,14 +261,14 @@ public class Topography : MonoBehaviour
             vectrices[vectrice_idx + 1] = new Vector3(EFx * width, Ey * height, 0);
             uv[vectrice_idx + 1] = new Vector2(EFx, Ey);
             normals[vectrice_idx + 1] = normal;
-            
+
             // F
             vectrices[vectrice_idx + 2] = new Vector3(EFx * width, 0 * height, 0);
             uv[vectrice_idx + 2] = new Vector2(EFx, 0);
             normals[vectrice_idx + 2] = normal;
 
             int vect_pos = vectrice_idx;
-            
+
             triangles[triangle_idx + 0] = vect_pos - 1;
             triangles[triangle_idx + 1] = vect_pos - 2;
             triangles[triangle_idx + 2] = vect_pos + 1;
@@ -200,7 +283,7 @@ public class Topography : MonoBehaviour
 
             triangles[triangle_idx + 9] = vect_pos - 2;
             triangles[triangle_idx + 10] = vect_pos;
-            triangles[triangle_idx + 11] = vect_pos + 1;          
+            triangles[triangle_idx + 11] = vect_pos + 1;
 
         }
 
@@ -210,11 +293,11 @@ public class Topography : MonoBehaviour
         mesh.triangles = triangles;
         //mesh.subMeshCount = 2;
         //mesh.SetTriangles(triangles, 0);
-        
+
         mesh.normals = normals;
         mesh.RecalculateBounds();
         mFilter.mesh = mesh;
-    
+
     }
 
 
