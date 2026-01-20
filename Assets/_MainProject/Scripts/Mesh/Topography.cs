@@ -94,13 +94,13 @@ public class Topography : MonoBehaviour
     {
         float[] map = new float[resolution * resolutionLength];
 
-        for (int deep = 0; deep < resolutionLength; deep++)
+        for (int profil = 0; profil < resolution; profil++)
         {
-            for (int profil = 0; profil < resolution; profil++)
+            for (int deep = 0; deep < resolutionLength; deep++)
             {
                 float portion = profil / resolution;
                 float maxHeight = curve.Evaluate(portion);
-                map[profil * deep] = CalculerY(maxHeight, (deep / resolutionLength) - .5f, 1.0f);
+                map[deep + (profil * resolutionLength)] = CalculerY(maxHeight, (deep / resolutionLength) - .5f, 1.0f);
             }
         }
 
@@ -121,40 +121,44 @@ public class Topography : MonoBehaviour
         normals = new Vector3[vectricesNumber];
         triangles = new int[(resolution - 1) * (resolutionLength - 1) * 6];
 
-        for (int i = 0; i < resolutionLength; i++)
+        for (int y = 0; y < resolution; y++)
         {
-
-            for (int y = 0; y < resolution; y++)
+            for (int i = 0; i < resolutionLength; i++)
             {
 
                 float stepTopo = y / resolution;
                 float stepDeep = i / resolutionLength;
-                // D
-                vectrices[(i * y) + 0] = new Vector3(stepTopo, map[(i) * (y)] * height, stepDeep);
-                uv[i + 0] = new Vector2(stepTopo, stepDeep);
-                normals[i + 0] = normal_up;
+                // D 
+                vectrices[(i + (y * resolutionLength))] = new Vector3(stepTopo * width, map[(i + (y * resolutionLength))] * height, stepDeep * length);
+                uv[(i + (y * resolutionLength))] = new Vector2(stepTopo, stepDeep);
+                normals[(i + (y * resolutionLength))] = normal_up;
             }
-
         }
-        
-        /*
 
-                triangles[triangle_idx + 0] = vect_pos - 1;
-                triangles[triangle_idx + 1] = vect_pos - 2;
-                triangles[triangle_idx + 2] = vect_pos + 1;
+        int triangle_idx = 0;
+        for (int y = 0; y < resolution - 1; y++)
+        {
+            for (int i = 0; i < resolutionLength - 1; i++)
+            {
+                triangles[triangle_idx + 0] = 0 + i;
+                triangles[triangle_idx + 1] = 1 + i;
+                triangles[triangle_idx + 2] = 1 + i + ((y + 1) * resolutionLength);
 
-                triangles[triangle_idx + 3] = vect_pos - 1;
-                triangles[triangle_idx + 4] = vect_pos + 1;
-                triangles[triangle_idx + 5] = vect_pos + 2;
+                triangles[triangle_idx + 3] = 0 + i;
+                triangles[triangle_idx + 4] = 1 + i + ((y + 1) * resolutionLength);
+                triangles[triangle_idx + 5] = 0 + i + ((y + 1) * resolutionLength);
 
-                triangles[triangle_idx + 6] = vect_pos - 2;
-                triangles[triangle_idx + 7] = vect_pos - 3;
-                triangles[triangle_idx + 8] = vect_pos;
+                triangle_idx += 6;
+            }
+        }
 
-                triangles[triangle_idx + 9] = vect_pos - 2;
-                triangles[triangle_idx + 10] = vect_pos;
-                triangles[triangle_idx + 11] = vect_pos + 1;
-*/
+        mesh = new Mesh();
+        mesh.vertices = vectrices;
+        mesh.uv = uv;
+        mesh.triangles = triangles;
+        mesh.normals = normals;
+        mesh.RecalculateBounds();
+        mFilter.mesh = mesh; 
 
     }
 
