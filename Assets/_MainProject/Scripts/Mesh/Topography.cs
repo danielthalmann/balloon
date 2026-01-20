@@ -94,13 +94,13 @@ public class Topography : MonoBehaviour
     {
         float[] map = new float[resolution * resolutionLength];
 
-        for (int profil = 0; profil < resolution; profil++)
+        for (int y = 0; y < resolution; y++)
         {
-            for (int deep = 0; deep < resolutionLength; deep++)
+            for (int i = 0; i < resolutionLength; i++)
             {
-                float portion = profil / resolution;
+                float portion = (float)y / (float)resolution;
                 float maxHeight = curve.Evaluate(portion);
-                map[deep + (profil * resolutionLength)] = CalculerY(maxHeight, (deep / resolutionLength) - .5f, 1.0f);
+                map[i + (y * resolutionLength)] = CalculerY(((float)(i * 2) / (float)(resolutionLength - 1)) - 1f, 1.0f, maxHeight);
             }
         }
 
@@ -119,15 +119,15 @@ public class Topography : MonoBehaviour
         vectrices = new Vector3[vectricesNumber];
         uv = new Vector2[vectricesNumber];
         normals = new Vector3[vectricesNumber];
-        triangles = new int[(resolution - 1) * (resolutionLength - 1) * 6];
+        triangles = new int[(resolution -1) * (resolutionLength -1) * 6];
 
         for (int y = 0; y < resolution; y++)
         {
             for (int i = 0; i < resolutionLength; i++)
             {
 
-                float stepTopo = y / resolution;
-                float stepDeep = i / resolutionLength;
+                float stepTopo = (float)y / (float)resolution;
+                float stepDeep = (float)i / (float)resolutionLength;
                 // D 
                 vectrices[(i + (y * resolutionLength))] = new Vector3(stepTopo * width, map[(i + (y * resolutionLength))] * height, stepDeep * length);
                 uv[(i + (y * resolutionLength))] = new Vector2(stepTopo, stepDeep);
@@ -138,13 +138,13 @@ public class Topography : MonoBehaviour
         int triangle_idx = 0;
         for (int y = 0; y < resolution - 1; y++)
         {
-            for (int i = 0; i < resolutionLength - 1; i++)
+            for (int i = 0; i < resolutionLength -1 ; i++)
             {
-                triangles[triangle_idx + 0] = 0 + i;
-                triangles[triangle_idx + 1] = 1 + i;
+                triangles[triangle_idx + 0] = 0 + i + (y * resolutionLength);
+                triangles[triangle_idx + 1] = 1 + i + (y * resolutionLength);
                 triangles[triangle_idx + 2] = 1 + i + ((y + 1) * resolutionLength);
 
-                triangles[triangle_idx + 3] = 0 + i;
+                triangles[triangle_idx + 3] = 0 + i + (y * resolutionLength);
                 triangles[triangle_idx + 4] = 1 + i + ((y + 1) * resolutionLength);
                 triangles[triangle_idx + 5] = 0 + i + ((y + 1) * resolutionLength);
 
@@ -155,7 +155,7 @@ public class Topography : MonoBehaviour
         mesh = new Mesh();
         mesh.vertices = vectrices;
         mesh.uv = uv;
-        mesh.triangles = triangles;
+        mesh.triangles = (triangles);
         mesh.normals = normals;
         mesh.RecalculateBounds();
         mFilter.mesh = mesh; 
